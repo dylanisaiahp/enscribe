@@ -21,7 +21,7 @@ Follow these steps to set up the project:
 
 1.  **Clone the repository:**
     ```bash
-    git clone [https://github.com/dylanisaiahp/enscribe.git](https://github.com/your-username/enscribe.git)
+    git clone https://github.com/dylanisaiahp/enscribe.git
     ```
 
 2.  **Navigate to the project directory:**
