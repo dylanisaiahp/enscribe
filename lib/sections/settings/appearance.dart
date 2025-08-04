@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:material_symbols_icons/material_symbols_icons.dart';
 import '../../data/themes.dart';
 import '../../data/colors.dart';
 import '../../nav.dart';
@@ -54,7 +55,7 @@ class _AppearanceSectionState extends State<AppearanceSection>
   bool _navExpanded = false;
 
   @override
-  bool get wantKeepAlive => false; // Reset when navigating away
+  bool get wantKeepAlive => false;
 
   final List<String> _navLabels = ['Top', 'Bottom', 'Left', 'Right'];
 
@@ -267,7 +268,8 @@ class _AppearanceSectionState extends State<AppearanceSection>
                       child: Row(
                         children: [
                           Icon(
-                            Icons.view_sidebar_rounded,
+                            Symbols.bottom_navigation_rounded,
+                            fill: 1.0,
                             size: 28.0,
                             color: widget.onSurface,
                           ),
@@ -301,40 +303,58 @@ class _AppearanceSectionState extends State<AppearanceSection>
                     ),
                   ),
 
-                  // NavBar expanded toggle buttons (bottom rounded corners)
+                  // NavBar expanded toggle buttons
                   AnimatedCrossFade(
                     firstChild: const SizedBox.shrink(),
                     secondChild: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 12,
-                      ),
-                      child: ToggleButtons(
-                        isSelected: [
-                          widget.selectedNavBarPosition == NavBarPosition.top,
-                          widget.selectedNavBarPosition ==
-                              NavBarPosition.bottom,
-                          widget.selectedNavBarPosition == NavBarPosition.left,
-                          widget.selectedNavBarPosition == NavBarPosition.right,
-                        ],
-                        onPressed: (index) {
-                          setState(() {
-                            final newPos = NavBarPosition.values[index];
-                            widget.onNavBarPositionChanged(newPos);
-                          });
-                        },
-                        borderRadius: BorderRadius.circular(12),
-                        selectedBorderColor: widget.accent,
-                        selectedColor: widget.accent,
-                        fillColor: widget.accent.withAlpha(26),
-                        color: widget.onSurface.withAlpha(153),
-                        constraints: const BoxConstraints(
-                          minWidth: 64,
-                          minHeight: 36,
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Color.lerp(
+                          widget.background,
+                          Colors.white,
+                          0.05,
                         ),
-                        children: _navLabels
-                            .map((label) => Text(label))
-                            .toList(),
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: List.generate(NavBarPosition.values.length, (
+                          index,
+                        ) {
+                          final position = NavBarPosition.values[index];
+                          final isSelected =
+                              widget.selectedNavBarPosition == position;
+                          final label = _navLabels[index];
+
+                          return Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 4),
+                            child: TextButton(
+                              onPressed: () {
+                                setState(() {
+                                  widget.onNavBarPositionChanged(position);
+                                });
+                              },
+                              style: TextButton.styleFrom(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 8,
+                                ),
+                                backgroundColor: isSelected
+                                    ? widget.accent
+                                    : Colors.transparent,
+                                foregroundColor: isSelected
+                                    ? widget.textColor
+                                    : widget.textColor.withAlpha(128),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                minimumSize: const Size(72, 28),
+                              ),
+                              child: Text(label),
+                            ),
+                          );
+                        }),
                       ),
                     ),
                     crossFadeState: _navExpanded
