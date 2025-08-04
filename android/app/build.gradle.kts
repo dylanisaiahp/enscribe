@@ -1,7 +1,6 @@
 plugins {
     id("com.android.application")
     id("kotlin-android")
-    // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id("dev.flutter.flutter-gradle-plugin")
 }
 
@@ -20,10 +19,7 @@ android {
     }
 
     defaultConfig {
-        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
         applicationId = "com.example.enscribe"
-        // You can update the following values to match your application needs.
-        // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
@@ -32,13 +28,42 @@ android {
 
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig = signingConfigs.getByName("debug")
+            signingConfig = signingConfigs.getByName("debug") // Replace with your release config
         }
     }
 }
 
 flutter {
     source = "../.."
+}
+
+afterEvaluate {
+    tasks.matching { it.name.startsWith("assemble") && it.name.endsWith("Release") }.configureEach {
+        doLast {
+            val versionName = android.defaultConfig.versionName
+            val versionCode = android.defaultConfig.versionCode
+
+            val outputDir = file("$buildDir/outputs/flutter-apk")
+            if (outputDir.exists()) {
+                outputDir.listFiles()?.forEach { file ->
+                    if (file.extension == "apk") {
+                        val abi = when {
+                            "armeabi-v7a" in file.name -> "armeabi-v7a"
+                            "arm64-v8a" in file.name -> "arm64-v8a"
+                            "x86_64" in file.name -> "x86_64"
+                            "universal" in file.name -> "universal"
+                            else -> null
+                        }
+
+                        abi?.let {
+                            val newName = "enscribe-${versionName}-${versionCode}-$abi.apk"
+                            val renamed = file.resolveSibling(newName)
+                            file.renameTo(renamed)
+                            println("Renamed ${file.name} -> ${renamed.name}")
+                        }
+                    }
+                }
+            }
+        }
+    }
 }

@@ -8,6 +8,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:open_filex/open_filex.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:device_info_plus/device_info_plus.dart';
 
 // The URL for your GitHub repository.
 final Uri _gitHubUrl = Uri.parse('https://github.com/dylanisaiahp/enscribe');
@@ -72,6 +73,20 @@ class _AboutSectionState extends State<AboutSection> {
     }
   }
 
+  /// Helper function to get the device's ABI.
+  Future<String?> _getDeviceAbi() async {
+    // We only need to check for Android devices.
+    if (Platform.isAndroid) {
+      final deviceInfo = await DeviceInfoPlugin().androidInfo;
+      // The deviceInfo.supportedAbis will give a list of supported ABIs,
+      // with the best one at the front of the list. We'll use the first one.
+      if (deviceInfo.supportedAbis.isNotEmpty) {
+        return deviceInfo.supportedAbis.first;
+      }
+    }
+    return null;
+  }
+
   /// Downloads the APK and triggers the installer.
   Future<void> _downloadAndInstallApk(String url) async {
     final theme = Theme.of(context);
@@ -108,7 +123,6 @@ class _AboutSectionState extends State<AboutSection> {
           ),
         );
 
-        // --- FIX START ---
         // Request the permission and store the result.
         final status = await Permission.requestInstallPackages.request();
         if (status.isGranted) {
@@ -147,7 +161,6 @@ class _AboutSectionState extends State<AboutSection> {
             ),
           );
         }
-        // --- FIX END ---
       } else {
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
@@ -187,6 +200,20 @@ class _AboutSectionState extends State<AboutSection> {
     final String currentVersion = packageInfo.version;
 
     try {
+      // Get the device's ABI to find the correct APK.
+      final String? deviceAbi = await _getDeviceAbi();
+      if (deviceAbi == null) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('Could not determine device architecture.'),
+            backgroundColor: theme.colorScheme.error,
+            duration: const Duration(seconds: 4),
+          ),
+        );
+        return;
+      }
+
       // Make a GET request to the GitHub API to get the latest release info.
       final response = await http.get(Uri.parse(_githubApiUrl));
 
@@ -199,9 +226,13 @@ class _AboutSectionState extends State<AboutSection> {
           '',
         );
         final List assets = jsonResponse['assets'] as List? ?? [];
+
+        // Find the specific APK asset that matches the device's ABI.
         final String? apkUrl =
             assets.firstWhere(
-                  (asset) => asset['name'].endsWith('.apk'),
+                  (asset) =>
+                      asset['name'].endsWith('.apk') &&
+                      asset['name'].contains(deviceAbi),
                   orElse: () => null,
                 )?['browser_download_url']
                 as String?;
