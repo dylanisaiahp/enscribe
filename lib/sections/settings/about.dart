@@ -334,7 +334,7 @@ class _AboutSectionState extends State<AboutSection> {
             ),
             // ListTile for checking updates.
             ListTile(
-              leading: const Icon(Icons.system_update_rounded),
+              leading: const Icon(Icons.system_update_rounded, fill: 1.0),
               title: const Text('Updates'),
               onTap: () => _checkForUpdates(),
             ),
