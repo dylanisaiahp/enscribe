@@ -204,6 +204,21 @@ class EnscribeThemes {
           );
         }),
       ),
+      // Style the NavigationRail.
+      navigationRailTheme: NavigationRailThemeData(
+        backgroundColor: colors.secondaryColor,
+        elevation: 0,
+        indicatorColor: Colors.transparent,
+        selectedIconTheme: IconThemeData(color: colors.accentColor),
+        unselectedIconTheme: IconThemeData(
+          color: colors.textColor.withAlpha(153),
+        ),
+        selectedLabelTextStyle: TextStyle(color: colors.accentColor),
+        unselectedLabelTextStyle: TextStyle(
+          color: colors.textColor.withAlpha(153),
+        ),
+      ),
+
       // Style the Card widget.
       cardTheme: CardThemeData(
         color: colors.secondaryColor,

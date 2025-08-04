@@ -102,22 +102,40 @@ class _HomeNavigationState extends State<HomeNavigation> {
         // but Flutter's NavigationBar is designed horizontally
         // You might want to build a custom vertical nav or use NavigationRail instead
         return SizedBox(
-          width: 72,
+          width: 64,
           child: NavigationRail(
             selectedIndex: _selectedIndex,
             onDestinationSelected: _onItemTapped,
             labelType: NavigationRailLabelType.selected,
             destinations: const [
               NavigationRailDestination(
-                icon: Icon(Symbols.dashboard_rounded, fill: 1.0),
+                padding: EdgeInsets.symmetric(vertical: 16),
+                icon: Icon(Symbols.dashboard_rounded, fill: 0.0, size: 24),
+                selectedIcon: Icon(
+                  Symbols.dashboard_rounded,
+                  fill: 1.0,
+                  size: 24,
+                ),
                 label: Text('Notes'),
               ),
               NavigationRailDestination(
-                icon: Icon(Symbols.note_stack_add_rounded, fill: 1.0),
+                padding: EdgeInsets.symmetric(vertical: 16),
+                icon: Icon(Symbols.note_stack_add_rounded, fill: 0.0, size: 24),
+                selectedIcon: Icon(
+                  Symbols.note_stack_add_rounded,
+                  fill: 1.0,
+                  size: 24,
+                ),
                 label: Text('Create'),
               ),
               NavigationRailDestination(
-                icon: Icon(Symbols.settings_rounded, fill: 1.0),
+                padding: EdgeInsets.symmetric(vertical: 16),
+                icon: Icon(Symbols.settings_rounded, fill: 0.0, size: 24),
+                selectedIcon: Icon(
+                  Symbols.settings_rounded,
+                  fill: 1.0,
+                  size: 24,
+                ),
                 label: Text('Settings'),
               ),
             ],
