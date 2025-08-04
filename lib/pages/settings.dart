@@ -3,6 +3,7 @@ import '../data/themes.dart'; // Imports the custom theme data.
 import '../sections/settings/about.dart'; // Imports the About section widget.
 import '../sections/settings/appearance.dart'; // Imports the Appearance section widget.
 import '../sections/settings/notes.dart'; // Imports the Notes section widget.
+import '../nav.dart';
 
 /// A stateful widget that displays the application's settings page.
 /// It receives various properties and callbacks from its parent widget
@@ -11,26 +12,15 @@ class SettingsPage extends StatefulWidget {
   /// The currently selected theme for the application.
   final EnscribeTheme selectedTheme;
 
-  /// Callback function to be called when the theme is changed.
   final void Function(EnscribeTheme) onThemeChanged;
-
-  /// A boolean indicating whether the notes are displayed in a grid view.
   final bool isGridView;
-
-  /// A boolean indicating whether the date and time should be shown on notes.
   final bool showDateTime;
-
-  /// A boolean indicating whether the category should be shown on notes.
   final bool showCategory;
-
-  /// Callback function to be called when the view toggle is triggered.
   final ValueChanged<bool> onToggleView;
-
-  /// Callback function to be called when the date/time toggle is triggered.
   final ValueChanged<bool> onToggleDateTime;
-
-  /// Callback function to be called when the category toggle is triggered.
   final ValueChanged<bool> onToggleCategory;
+  final NavBarPosition selectedNavBarPosition;
+  final ValueChanged<NavBarPosition> onNavBarPositionChanged;
 
   const SettingsPage({
     super.key,
@@ -42,6 +32,8 @@ class SettingsPage extends StatefulWidget {
     required this.onToggleView,
     required this.onToggleDateTime,
     required this.onToggleCategory,
+    required this.selectedNavBarPosition,
+    required this.onNavBarPositionChanged,
   });
 
   @override
@@ -71,6 +63,9 @@ class _SettingsPageState extends State<SettingsPage> {
     final onSurface = theme.colorScheme.onSurface;
     final textColor = theme.textTheme.labelLarge!.color ?? Colors.black;
 
+    final bool isNavBarTop =
+        widget.selectedNavBarPosition == NavBarPosition.top;
+
     // This callback is scheduled to run after the widget tree has been built
     // and laid out. It's used to get the actual width of the dropdown menu
     // to ensure its size is correct.
@@ -84,49 +79,55 @@ class _SettingsPageState extends State<SettingsPage> {
     return Scaffold(
       // The main layout widget for the screen.
       body: SafeArea(
-        // Prevents content from being hidden by the bottom system navigation bar.
+        top: !isNavBarTop,
         bottom: false,
         child: GestureDetector(
           // Tapping on the empty space of the page dismisses the keyboard.
           onTap: () => FocusScope.of(context).unfocus(),
           behavior: HitTestBehavior.opaque,
           child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
-            child: ListView(
-              children: [
-                // The Appearance settings section.
-                AppearanceSection(
-                  selectedTheme: widget.selectedTheme,
-                  onThemeChanged: widget.onThemeChanged,
-                  onSurface: onSurface,
-                  accent: accent,
-                  background: background,
-                  textColor: textColor,
-                  titleStyle: titleStyle,
-                  theme: theme,
-                ),
-                const SizedBox(height: 16), // A spacer.
-                // The Notes settings section.
-                NotesSection(
-                  isGridView: widget.isGridView,
-                  showDateTime: widget.showDateTime,
-                  showCategory: widget.showCategory,
-                  onToggleView: widget.onToggleView,
-                  onToggleDateTime: widget.onToggleDateTime,
-                  onToggleCategory: widget.onToggleCategory,
-                  onSurface: onSurface,
-                  titleStyle: titleStyle,
-                  accent: accent,
-                  background: background,
-                ),
-                const SizedBox(height: 16), // A spacer.
-                // The About section.
-                AboutSection(
-                  background: background,
-                  accent: accent,
-                  titleStyle: titleStyle,
-                ),
-              ],
+            padding: EdgeInsets.only(top: 16, bottom: 16, left: 20, right: 20),
+            child: MediaQuery.removePadding(
+              context: context,
+              removeTop: true,
+              child: ListView(
+                children: [
+                  // The Appearance settings section.
+                  AppearanceSection(
+                    selectedTheme: widget.selectedTheme,
+                    onThemeChanged: widget.onThemeChanged,
+                    onSurface: onSurface,
+                    accent: accent,
+                    background: background,
+                    textColor: textColor,
+                    titleStyle: titleStyle,
+                    theme: theme,
+                    selectedNavBarPosition: widget.selectedNavBarPosition,
+                    onNavBarPositionChanged: widget.onNavBarPositionChanged,
+                  ),
+                  const SizedBox(height: 16), // A spacer.
+                  // The Notes settings section.
+                  NotesSection(
+                    isGridView: widget.isGridView,
+                    showDateTime: widget.showDateTime,
+                    showCategory: widget.showCategory,
+                    onToggleView: widget.onToggleView,
+                    onToggleDateTime: widget.onToggleDateTime,
+                    onToggleCategory: widget.onToggleCategory,
+                    onSurface: onSurface,
+                    titleStyle: titleStyle,
+                    accent: accent,
+                    background: background,
+                  ),
+                  const SizedBox(height: 16), // A spacer.
+                  // The About section.
+                  AboutSection(
+                    background: background,
+                    accent: accent,
+                    titleStyle: titleStyle,
+                  ),
+                ],
+              ),
             ),
           ),
         ),

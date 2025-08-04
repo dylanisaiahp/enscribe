@@ -1,20 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
 import '../data/note.dart'; // Import the Note data model.
+import '../nav.dart';
 
 /// A stateful widget for creating a new note.
 /// It takes a callback function to handle the creation of a new note
 /// and a list of all existing notes to populate the category suggestions.
 class CreateNotePage extends StatefulWidget {
-  // Callback function to be executed when a new note is created.
   final Function(Note) onNoteCreated;
-  // A list of all existing notes, used to get unique categories.
   final List<Note> allNotes;
+  final NavBarPosition selectedNavBarPosition;
 
   const CreateNotePage({
     super.key,
     required this.onNoteCreated,
     required this.allNotes,
+    required this.selectedNavBarPosition,
   });
 
   @override
@@ -78,146 +79,161 @@ class _CreateNotePageState extends State<CreateNotePage> {
     final theme = Theme.of(context);
     final background = theme.colorScheme.secondary;
     final onSurface = theme.colorScheme.onSurface;
-    final hintColor = onSurface.withAlpha(
-      153,
-    ); // A faded version of the onSurface color.
+    final hintColor = onSurface.withAlpha(153);
+
+    final bool isNavBarTop =
+        widget.selectedNavBarPosition == NavBarPosition.top;
 
     return Scaffold(
       // The main layout widget for the screen.
       body: SafeArea(
-        // Ensures the content avoids system overlays like the status bar.
+        top: !isNavBarTop,
         bottom: false,
-        child: GestureDetector(
-          // Allows dismissing the keyboard by tapping outside of a text field.
-          onTap: () => FocusScope.of(context).unfocus(),
-          behavior:
-              HitTestBehavior.opaque, // Ensures the entire area is tappable.
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 80),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Text field for the note's title.
-                TextField(
-                  textCapitalization: TextCapitalization.sentences,
-                  autocorrect: true,
-                  enableSuggestions: true,
-                  controller: _titleController,
-                  style: TextStyle(color: onSurface),
-                  decoration: InputDecoration(
-                    hintText: 'Title',
-                    hintStyle: TextStyle(color: hintColor),
-                    prefixIcon: const Icon(Symbols.title_rounded, fill: 1.0),
-                    filled: true,
-                    fillColor: background,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide.none,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 16), // Spacer.
-                // Text field for the note's category.
-                TextField(
-                  textCapitalization: TextCapitalization.sentences,
-                  autocorrect: true,
-                  enableSuggestions: true,
-                  maxLength: 12, // Limits the category length.
-                  focusNode: _categoryFocusNode,
-                  controller: _categoryController,
-                  style: TextStyle(color: onSurface),
-                  decoration: InputDecoration(
-                    counterText: '', // Hides the character counter.
-                    hintText: 'Category',
-                    hintStyle: TextStyle(color: hintColor),
-                    prefixIcon: const Icon(Symbols.category_rounded, fill: 1.0),
-                    filled: true,
-                    fillColor: background,
-                    // Suffix icon with a PopupMenuButton for category suggestions.
-                    suffixIcon: PopupMenuButton<String>(
-                      icon: Icon(Symbols.filter_list_rounded, color: onSurface),
-                      tooltip: 'Select category',
-                      onSelected: (selectedCategory) {
-                        setState(() {
-                          _categoryController.text =
-                              selectedCategory; // Update the text field with the selected category.
-                        });
-                        _categoryFocusNode.unfocus(); // Dismiss the keyboard.
-                      },
-                      itemBuilder: (context) {
-                        final uniqueCategories =
-                            _getAllUniqueCategories().toList()
-                              ..sort(); // Get and sort unique categories.
-                        if (uniqueCategories.isEmpty) {
-                          // Show a message if there are no existing categories.
-                          return [
-                            const PopupMenuItem<String>(
-                              enabled: false,
-                              child: Text('No categories created yet'),
-                            ),
-                          ];
-                        }
-                        // Create a menu item for each unique category.
-                        return uniqueCategories
-                            .map(
-                              (category) => PopupMenuItem<String>(
-                                value: category,
-                                child: Text(category),
-                              ),
-                            )
-                            .toList();
-                      },
-                    ),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide.none,
-                    ),
-                    suffixIconConstraints: const BoxConstraints(
-                      minWidth: 48,
-                      minHeight: 48,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 16), // Spacer.
-                // Expanded text field for the note's content.
-                Expanded(
-                  child: TextField(
+        child: MediaQuery.removePadding(
+          context: context,
+          child: GestureDetector(
+            // Allows dismissing the keyboard by tapping outside of a text field.
+            onTap: () => FocusScope.of(context).unfocus(),
+            behavior:
+                HitTestBehavior.opaque, // Ensures the entire area is tappable.
+            child: Padding(
+              padding: EdgeInsets.only(
+                top: 16,
+                bottom: 80,
+                left: 20,
+                right: 20,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Text field for the note's title.
+                  TextField(
                     textCapitalization: TextCapitalization.sentences,
                     autocorrect: true,
                     enableSuggestions: true,
-                    controller: _contentController,
+                    controller: _titleController,
                     style: TextStyle(color: onSurface),
                     decoration: InputDecoration(
-                      hintText: 'Write your note here…',
+                      hintText: 'Title',
                       hintStyle: TextStyle(color: hintColor),
-                      prefixIcon: Padding(
-                        // Align the note icon to the top left of the text field.
-                        padding: const EdgeInsets.only(top: 10),
-                        child: Align(
-                          alignment: Alignment.topCenter,
-                          widthFactor: 1.0,
-                          child: const Icon(Symbols.note_rounded, fill: 1.0),
-                        ),
-                      ),
+                      prefixIcon: const Icon(Symbols.title_rounded, fill: 1.0),
                       filled: true,
                       fillColor: background,
-                      contentPadding: const EdgeInsets.all(12),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
                         borderSide: BorderSide.none,
                       ),
                     ),
-                    keyboardType:
-                        TextInputType.multiline, // Enables multiline input.
-                    expands:
-                        true, // Allows the text field to expand to fill available space.
-                    maxLines: null,
-                    minLines: null,
-                    textAlignVertical:
-                        TextAlignVertical.top, // Aligns text to the top.
                   ),
-                ),
-              ],
+                  const SizedBox(height: 16), // Spacer.
+                  // Text field for the note's category.
+                  TextField(
+                    textCapitalization: TextCapitalization.sentences,
+                    autocorrect: true,
+                    enableSuggestions: true,
+                    maxLength: 12, // Limits the category length.
+                    focusNode: _categoryFocusNode,
+                    controller: _categoryController,
+                    style: TextStyle(color: onSurface),
+                    decoration: InputDecoration(
+                      counterText: '', // Hides the character counter.
+                      hintText: 'Category',
+                      hintStyle: TextStyle(color: hintColor),
+                      prefixIcon: const Icon(
+                        Symbols.category_rounded,
+                        fill: 1.0,
+                      ),
+                      filled: true,
+                      fillColor: background,
+                      // Suffix icon with a PopupMenuButton for category suggestions.
+                      suffixIcon: PopupMenuButton<String>(
+                        icon: Icon(
+                          Symbols.filter_list_rounded,
+                          color: onSurface,
+                        ),
+                        tooltip: 'Select category',
+                        onSelected: (selectedCategory) {
+                          setState(() {
+                            _categoryController.text =
+                                selectedCategory; // Update the text field with the selected category.
+                          });
+                          _categoryFocusNode.unfocus(); // Dismiss the keyboard.
+                        },
+                        itemBuilder: (context) {
+                          final uniqueCategories =
+                              _getAllUniqueCategories().toList()
+                                ..sort(); // Get and sort unique categories.
+                          if (uniqueCategories.isEmpty) {
+                            // Show a message if there are no existing categories.
+                            return [
+                              const PopupMenuItem<String>(
+                                enabled: false,
+                                child: Text('No categories created yet'),
+                              ),
+                            ];
+                          }
+                          // Create a menu item for each unique category.
+                          return uniqueCategories
+                              .map(
+                                (category) => PopupMenuItem<String>(
+                                  value: category,
+                                  child: Text(category),
+                                ),
+                              )
+                              .toList();
+                        },
+                      ),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide.none,
+                      ),
+                      suffixIconConstraints: const BoxConstraints(
+                        minWidth: 48,
+                        minHeight: 48,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16), // Spacer.
+                  // Expanded text field for the note's content.
+                  Expanded(
+                    child: TextField(
+                      textCapitalization: TextCapitalization.sentences,
+                      autocorrect: true,
+                      enableSuggestions: true,
+                      controller: _contentController,
+                      style: TextStyle(color: onSurface),
+                      decoration: InputDecoration(
+                        hintText: 'Write your note here…',
+                        hintStyle: TextStyle(color: hintColor),
+                        prefixIcon: Padding(
+                          // Align the note icon to the top left of the text field.
+                          padding: const EdgeInsets.only(top: 10),
+                          child: Align(
+                            alignment: Alignment.topCenter,
+                            widthFactor: 1.0,
+                            child: const Icon(Symbols.note_rounded, fill: 1.0),
+                          ),
+                        ),
+                        filled: true,
+                        fillColor: background,
+                        contentPadding: const EdgeInsets.all(12),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide.none,
+                        ),
+                      ),
+                      keyboardType:
+                          TextInputType.multiline, // Enables multiline input.
+                      expands:
+                          true, // Allows the text field to expand to fill available space.
+                      maxLines: null,
+                      minLines: null,
+                      textAlignVertical:
+                          TextAlignVertical.top, // Aligns text to the top.
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),

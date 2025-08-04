@@ -3,6 +3,7 @@ import 'package:material_symbols_icons/material_symbols_icons.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import '../data/note.dart';
 import '../data/card.dart';
+import '../nav.dart';
 
 /// Defines the different ways notes can be sorted on the home page.
 enum NoteSortOrder {
@@ -15,16 +16,12 @@ enum NoteSortOrder {
 /// This widget represents the main home page where notes are displayed.
 /// It receives the list of notes and user settings from the parent widget.
 class HomePage extends StatefulWidget {
-  // The list of notes to be displayed.
   final List<Note> notes;
-  // A function to call when a note is modified or deleted.
   final Function(String originalNoteId, Note? modifiedNote) onNoteModified;
-  // A boolean to determine whether to show notes in a grid or list view.
   final bool isGridView;
-  // A boolean to control the visibility of the note category.
   final bool showCategory;
-  // A boolean to control the visibility of the note's date and time.
   final bool showDateTime;
+  final NavBarPosition selectedNavBarPosition;
 
   const HomePage({
     super.key,
@@ -33,6 +30,7 @@ class HomePage extends StatefulWidget {
     required this.isGridView,
     required this.showCategory,
     required this.showDateTime,
+    required this.selectedNavBarPosition,
   });
 
   @override
@@ -318,147 +316,160 @@ class _HomePageState extends State<HomePage> {
     final accent = theme.colorScheme.tertiary;
     final onPrimaryColor = theme.colorScheme.onPrimary;
 
+    final bool isNavBarTop =
+        widget.selectedNavBarPosition == NavBarPosition.top;
+
     return GestureDetector(
       // Tapping anywhere on the screen dismisses the keyboard.
       onTap: () => FocusScope.of(context).unfocus(),
       behavior: HitTestBehavior.opaque,
       child: Scaffold(
         body: SafeArea(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Search, filter, and sort bar.
-              Padding(
-                padding: const EdgeInsets.all(12),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: TextField(
-                        textCapitalization: TextCapitalization.sentences,
-                        autocorrect: true,
-                        enableSuggestions: true,
-                        focusNode: _searchFocusNode,
-                        autofocus: false,
-                        onChanged: (q) {
-                          setState(() => _searchQuery = q);
-                          _filterAndSortNotes();
-                        },
-                        onTap: () {
-                          if (!_searchFocusNode.hasFocus) {
-                            _searchFocusNode.requestFocus();
-                          }
-                        },
-                        decoration: InputDecoration(
-                          hintText: 'Search notes...',
-                          prefixIcon: const Icon(
-                            Symbols.search_rounded,
-                            fill: 1.0,
-                          ),
-                          suffixIcon: Padding(
-                            padding: const EdgeInsets.only(right: 8),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                // Filter button.
-                                Theme(
-                                  data: theme.copyWith(
-                                    checkboxTheme: CheckboxThemeData(
-                                      fillColor:
-                                          WidgetStateProperty.resolveWith<
-                                            Color?
-                                          >((states) {
-                                            if (states.contains(
-                                              WidgetState.selected,
-                                            )) {
-                                              return accent;
-                                            }
-                                            return null;
-                                          }),
-                                      checkColor: WidgetStateProperty.all(
-                                        onPrimaryColor,
+          top: !isNavBarTop,
+          bottom: false,
+          child: MediaQuery.removePadding(
+            context: context,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Search, filter, and sort bar.
+                Padding(
+                  padding: EdgeInsets.only(
+                    top: 16,
+                    bottom: 16,
+                    left: 20,
+                    right: 20,
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          textCapitalization: TextCapitalization.sentences,
+                          autocorrect: true,
+                          enableSuggestions: true,
+                          focusNode: _searchFocusNode,
+                          autofocus: false,
+                          onChanged: (q) {
+                            setState(() => _searchQuery = q);
+                            _filterAndSortNotes();
+                          },
+                          onTap: () {
+                            if (!_searchFocusNode.hasFocus) {
+                              _searchFocusNode.requestFocus();
+                            }
+                          },
+                          decoration: InputDecoration(
+                            hintText: 'Search notes...',
+                            prefixIcon: const Icon(
+                              Symbols.search_rounded,
+                              fill: 1.0,
+                            ),
+                            suffixIcon: Padding(
+                              padding: const EdgeInsets.only(right: 8),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  // Filter button.
+                                  Theme(
+                                    data: theme.copyWith(
+                                      checkboxTheme: CheckboxThemeData(
+                                        fillColor:
+                                            WidgetStateProperty.resolveWith<
+                                              Color?
+                                            >((states) {
+                                              if (states.contains(
+                                                WidgetState.selected,
+                                              )) {
+                                                return accent;
+                                              }
+                                              return null;
+                                            }),
+                                        checkColor: WidgetStateProperty.all(
+                                          onPrimaryColor,
+                                        ),
                                       ),
                                     ),
-                                  ),
-                                  child: IconButton(
-                                    icon: const Icon(
-                                      Symbols.filter_alt_rounded,
-                                      fill: 1.0,
+                                    child: IconButton(
+                                      icon: const Icon(
+                                        Symbols.filter_alt_rounded,
+                                        fill: 1.0,
+                                      ),
+                                      onPressed: _showFilterDialog,
+                                      tooltip: 'Filter by category',
+                                      padding: EdgeInsets.zero,
                                     ),
-                                    onPressed: _showFilterDialog,
-                                    tooltip: 'Filter by category',
+                                  ),
+                                  // Sort button.
+                                  PopupMenuButton<NoteSortOrder>(
+                                    icon: const Icon(Symbols.sort_rounded),
+                                    tooltip: 'Sort notes',
                                     padding: EdgeInsets.zero,
+                                    onSelected: (result) {
+                                      setState(() {
+                                        _currentSortOrder = result;
+                                        _filterAndSortNotes();
+                                      });
+                                      _searchFocusNode.unfocus();
+                                    },
+                                    onCanceled: () {
+                                      _searchFocusNode.unfocus();
+                                    },
+                                    itemBuilder: (context) => const [
+                                      PopupMenuItem(
+                                        value: NoteSortOrder.modifiedNewest,
+                                        child: Text('Date (Newest)'),
+                                      ),
+                                      PopupMenuItem(
+                                        value: NoteSortOrder.modifiedOldest,
+                                        child: Text('Date (Oldest)'),
+                                      ),
+                                      PopupMenuItem(
+                                        value: NoteSortOrder.titleAscending,
+                                        child: Text('Title (A-Z)'),
+                                      ),
+                                      PopupMenuItem(
+                                        value: NoteSortOrder.categoryAscending,
+                                        child: Text('Category (A-Z)'),
+                                      ),
+                                    ],
                                   ),
-                                ),
-                                // Sort button.
-                                PopupMenuButton<NoteSortOrder>(
-                                  icon: const Icon(Symbols.sort_rounded),
-                                  tooltip: 'Sort notes',
-                                  padding: EdgeInsets.zero,
-                                  onSelected: (result) {
-                                    setState(() {
-                                      _currentSortOrder = result;
-                                      _filterAndSortNotes();
-                                    });
-                                    _searchFocusNode.unfocus();
-                                  },
-                                  onCanceled: () {
-                                    _searchFocusNode.unfocus();
-                                  },
-                                  itemBuilder: (context) => const [
-                                    PopupMenuItem(
-                                      value: NoteSortOrder.modifiedNewest,
-                                      child: Text('Date (Newest)'),
-                                    ),
-                                    PopupMenuItem(
-                                      value: NoteSortOrder.modifiedOldest,
-                                      child: Text('Date (Oldest)'),
-                                    ),
-                                    PopupMenuItem(
-                                      value: NoteSortOrder.titleAscending,
-                                      child: Text('Title (A-Z)'),
-                                    ),
-                                    PopupMenuItem(
-                                      value: NoteSortOrder.categoryAscending,
-                                      child: Text('Category (A-Z)'),
-                                    ),
-                                  ],
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
-                          ),
-                          filled: true,
-                          fillColor: background,
-                          contentPadding: const EdgeInsets.symmetric(
-                            vertical: 12,
-                          ),
-                          enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide.none,
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide(color: accent, width: 2),
+                            filled: true,
+                            fillColor: background,
+                            contentPadding: const EdgeInsets.symmetric(
+                              vertical: 12,
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide.none,
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide(color: accent, width: 2),
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-              // The main area where notes are displayed.
-              Expanded(
-                child: AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 300),
-                  key: _switcherKey,
-                  child: _isLoading
-                      ? const Center(
-                          key: ValueKey('loading_indicator'),
-                          child: CircularProgressIndicator(),
-                        )
-                      : _buildListOrGrid(),
+                // The main area where notes are displayed.
+                Expanded(
+                  child: AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 300),
+                    key: _switcherKey,
+                    child: _isLoading
+                        ? const Center(
+                            key: ValueKey('loading_indicator'),
+                            child: CircularProgressIndicator(),
+                          )
+                        : _buildListOrGrid(),
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
