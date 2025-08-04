@@ -104,7 +104,6 @@ class _SettingsPageState extends State<SettingsPage> {
                   textColor: textColor,
                   titleStyle: titleStyle,
                   theme: theme,
-                  dropdownKey: _dropdownKey,
                 ),
                 const SizedBox(height: 16), // A spacer.
                 // The Notes settings section.

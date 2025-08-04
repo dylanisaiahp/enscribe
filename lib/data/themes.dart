@@ -27,48 +27,39 @@ class EnscribeThemeInfo {
   const EnscribeThemeInfo(this.name, this.description);
 }
 
-/// A constant map that provides detailed information for each theme defined in the [EnscribeTheme] enum.
+/// A constant map that provides brief info for each theme in the [EnscribeTheme] enum.
 const Map<EnscribeTheme, EnscribeThemeInfo> themeDescriptions = {
   EnscribeTheme.onyx: EnscribeThemeInfo(
     'Onyx',
-    'A deep black theme for high contrast and OLED displays.',
+    'Deep black for high contrast and OLED.',
   ),
   EnscribeTheme.midnight: EnscribeThemeInfo(
     'Midnight',
-    'A serene dark theme with cool, calming blue tones.',
+    'Dark theme with cool blue tones.',
   ),
   EnscribeTheme.burgundy: EnscribeThemeInfo(
     'Burgundy',
-    'A rich and elegant dark theme with deep red hues.',
+    'Rich dark theme with deep reds.',
   ),
   EnscribeTheme.graphene: EnscribeThemeInfo(
     'Graphene',
-    'A soft, modern dark theme with graphite tones.',
+    'Soft, modern graphite tones.',
   ),
-  EnscribeTheme.lumen: EnscribeThemeInfo(
-    'Lumen',
-    'A bright and clean light theme with high clarity.',
-  ),
-  EnscribeTheme.beige: EnscribeThemeInfo(
-    'Beige',
-    'A warm and cozy light theme with calming hues.',
-  ),
+  EnscribeTheme.lumen: EnscribeThemeInfo('Lumen', 'Bright, clean light theme.'),
+  EnscribeTheme.beige: EnscribeThemeInfo('Beige', 'Warm and cozy light hues.'),
   EnscribeTheme.amethyst: EnscribeThemeInfo(
     'Amethyst',
-    'A dark theme with a sophisticated, subtle purple.',
+    'Dark theme with subtle purple.',
   ),
   EnscribeTheme.lavender: EnscribeThemeInfo(
     'Lavender',
-    'A gentle and airy light theme with delicate purple accents.',
+    'Airy light with purple accents.',
   ),
   EnscribeTheme.aqua: EnscribeThemeInfo(
     'Aqua',
-    'A refreshing light theme inspired by clear, cool water.',
+    'Refreshing light water-inspired.',
   ),
-  EnscribeTheme.mint: EnscribeThemeInfo(
-    'Mint',
-    'A crisp and clean light theme with a cool, refreshing feel.',
-  ),
+  EnscribeTheme.mint: EnscribeThemeInfo('Mint', 'Crisp, cool light theme.'),
 };
 
 /// A static class responsible for managing theme data persistence using the local database.
