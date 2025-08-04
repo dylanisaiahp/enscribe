@@ -1,6 +1,20 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:open_filex/open_filex.dart';
+import 'package:permission_handler/permission_handler.dart';
+
+// The URL for your GitHub repository.
+final Uri _gitHubUrl = Uri.parse('https://github.com/dylanisaiahp/enscribe');
+
+// The GitHub API URL to get the latest release information.
+const String _githubApiUrl =
+    'https://api.github.com/repos/dylanisaiahp/enscribe/releases/latest';
 
 /// A stateful widget that represents the About settings section.
 /// This section provides information about the application, such as its version and licenses.
@@ -41,9 +55,195 @@ class _AboutSectionState extends State<AboutSection> {
     return info.version;
   }
 
+  // A helper function to launch the URL safely.
+  Future<void> _launchUrl(Uri url) async {
+    final theme = Theme.of(context);
+
+    // Check if the URL can be launched on the device.
+    if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Could not open the URL: $url'),
+          backgroundColor: theme.colorScheme.error,
+          duration: const Duration(seconds: 4),
+        ),
+      );
+    }
+  }
+
+  /// Downloads the APK and triggers the installer.
+  Future<void> _downloadAndInstallApk(String url) async {
+    final theme = Theme.of(context);
+
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Downloading update...'),
+        duration: Duration(seconds: 4),
+      ),
+    );
+
+    try {
+      // Get the application's temporary directory.
+      final directory = await getTemporaryDirectory();
+
+      // Extract the filename from the URL to use as the local file name.
+      final fileName = url.split('/').last;
+      final filePath = '${directory.path}/$fileName';
+
+      // Download the file.
+      final response = await http.get(Uri.parse(url));
+
+      // Check if the download was successful.
+      if (response.statusCode == 200) {
+        final file = File(filePath);
+        await file.writeAsBytes(response.bodyBytes);
+
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Update downloaded. Launching installer...'),
+            duration: Duration(seconds: 4),
+          ),
+        );
+
+        // --- FIX START ---
+        // Request the permission and store the result.
+        final status = await Permission.requestInstallPackages.request();
+        if (status.isGranted) {
+          // If permission is granted, proceed to open the file.
+          final result = await OpenFilex.open(filePath);
+          if (result.type != ResultType.done) {
+            if (!mounted) return;
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Failed to open APK: ${result.message}'),
+                backgroundColor: theme.colorScheme.error,
+                duration: const Duration(seconds: 4),
+              ),
+            );
+          }
+        } else if (status.isPermanentlyDenied) {
+          // If permission is permanently denied, inform the user to go to settings.
+          if (!mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: const Text(
+                'Permission to install apps is permanently denied. Please enable it in your device settings.',
+              ),
+              backgroundColor: theme.colorScheme.error,
+              duration: const Duration(seconds: 6),
+            ),
+          );
+        } else {
+          // If permission is denied for any other reason, inform the user.
+          if (!mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: const Text('Permission to install apps denied.'),
+              backgroundColor: theme.colorScheme.error,
+              duration: const Duration(seconds: 4),
+            ),
+          );
+        }
+        // --- FIX END ---
+      } else {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to download update: ${response.statusCode}'),
+            backgroundColor: theme.colorScheme.error,
+            duration: const Duration(seconds: 4),
+          ),
+        );
+      }
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('An error occurred during download: $e'),
+          backgroundColor: theme.colorScheme.error,
+          duration: const Duration(seconds: 4),
+        ),
+      );
+    }
+  }
+
+  // The main asynchronous function to check for updates from GitHub.
+  Future<void> _checkForUpdates() async {
+    final theme = Theme.of(context);
+
+    // Show a snack bar indicating an update check is in progress.
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Checking for updates...'),
+        duration: Duration(seconds: 2),
+      ),
+    );
+
+    // Get the current version of the app from pubspec.yaml.
+    final PackageInfo packageInfo = await PackageInfo.fromPlatform();
+    final String currentVersion = packageInfo.version;
+
+    try {
+      // Make a GET request to the GitHub API to get the latest release info.
+      final response = await http.get(Uri.parse(_githubApiUrl));
+
+      if (!mounted) return;
+
+      if (response.statusCode == 200) {
+        final jsonResponse = jsonDecode(response.body);
+        final String latestVersion = jsonResponse['tag_name'].replaceAll(
+          'v',
+          '',
+        );
+        final List assets = jsonResponse['assets'] as List? ?? [];
+        final String? apkUrl =
+            assets.firstWhere(
+                  (asset) => asset['name'].endsWith('.apk'),
+                  orElse: () => null,
+                )?['browser_download_url']
+                as String?;
+
+        if (apkUrl != null && latestVersion.compareTo(currentVersion) > 0) {
+          // If an update is available and we have an APK URL, start the download.
+          _downloadAndInstallApk(apkUrl);
+        } else {
+          // If the current version is the same or newer, or no APK is found.
+          if (!mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('You are on the latest version.'),
+              duration: Duration(seconds: 4),
+            ),
+          );
+        }
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Failed to check for updates: ${response.statusCode}',
+            ),
+            backgroundColor: theme.colorScheme.error,
+            duration: const Duration(seconds: 4),
+          ),
+        );
+      }
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('An error occurred: $e'),
+          backgroundColor: theme.colorScheme.error,
+          duration: const Duration(seconds: 4),
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    // Local variables for better readability.
     final background = widget.background;
     final accent = widget.accent;
     final titleStyle = widget.titleStyle;
@@ -103,30 +303,9 @@ class _AboutSectionState extends State<AboutSection> {
             ),
             // ListTile for checking updates.
             ListTile(
-              leading: const Icon(Symbols.system_update_rounded, fill: 1.0),
+              leading: const Icon(Icons.system_update_rounded),
               title: const Text('Updates'),
-              onTap: () {
-                final scaffoldMessenger = ScaffoldMessenger.of(context);
-
-                // Shows a snack bar indicating an update check is in progress.
-                scaffoldMessenger.showSnackBar(
-                  const SnackBar(
-                    content: Text('Checking for updates...'),
-                    duration: Duration(seconds: 2),
-                  ),
-                );
-
-                // Simulates a network delay and then shows a second snack bar.
-                Future.delayed(const Duration(seconds: 2)).then((_) {
-                  if (!mounted) return;
-
-                  scaffoldMessenger.showSnackBar(
-                    const SnackBar(
-                      content: Text('You are on the latest version.'),
-                    ),
-                  );
-                });
-              },
+              onTap: () => _checkForUpdates(),
             ),
             // ListTile to show the application's licenses.
             ListTile(
@@ -134,11 +313,21 @@ class _AboutSectionState extends State<AboutSection> {
               title: const Text('Licenses'),
               onTap: () => showLicensePage(context: context),
             ),
-            // ListTile for open source information (onTap is a placeholder).
+            // ListTile for source code information
             ListTile(
-              leading: const Icon(Symbols.code_rounded, fill: 1.0),
-              title: const Text('Open Source'),
-              onTap: () {},
+              leading: const Icon(Icons.code),
+              title: const Text('Source'),
+              onTap: () {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Opening browser: $_gitHubUrl'),
+                    duration: Duration(seconds: 2),
+                  ),
+                );
+
+                // Call the function to launch the URL.
+                _launchUrl(_gitHubUrl);
+              },
             ),
           ],
         ),
