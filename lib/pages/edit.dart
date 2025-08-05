@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
 import 'package:flutter/services.dart';
-import '../data/note.dart';
+import '../data/card.dart';
 
 /// A stateful widget for editing an existing note.
 /// It receives the note to be edited and a list of all notes
 /// to populate the category selection dropdown.
 class EditNotePage extends StatefulWidget {
   /// The note object to be edited.
-  final Note note;
+  final CardData note;
 
   /// A list of all notes in the application, used to find unique categories.
-  final List<Note> allNotes;
+  final List<CardData> allNotes;
 
   const EditNotePage({super.key, required this.note, required this.allNotes});
 
@@ -71,11 +71,10 @@ class _EditNotePageState extends State<EditNotePage> {
     super.dispose();
   }
 
-  /// Retrieves a set of all unique categories from the list of all notes.
-  /// This is used to populate the category dropdown menu.
   Set<String> _getAllUniqueCategories() {
     return widget.allNotes
         .map((note) => note.category)
+        .whereType<String>() // filters non-null values only
         .where((category) => category.isNotEmpty)
         .toSet();
   }

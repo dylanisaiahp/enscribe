@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../data/themes.dart'; // Imports the custom theme data.
 import '../sections/settings/about.dart'; // Imports the About section widget.
 import '../sections/settings/appearance.dart'; // Imports the Appearance section widget.
-import '../sections/settings/notes.dart'; // Imports the Notes section widget.
+import '../sections/settings/note.dart'; // Imports the Notes section widget.
 import '../nav.dart';
 
 /// A stateful widget that displays the application's settings page.

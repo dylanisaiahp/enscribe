@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
-import '../data/note.dart';
+import 'dart:io';
 import '../data/card.dart';
 import '../nav.dart';
 
-/// Defines the different ways notes can be sorted on the home page.
 enum NoteSortOrder {
   modifiedNewest,
   modifiedOldest,
@@ -13,11 +12,9 @@ enum NoteSortOrder {
   categoryAscending,
 }
 
-/// This widget represents the main home page where notes are displayed.
-/// It receives the list of notes and user settings from the parent widget.
 class HomePage extends StatefulWidget {
-  final List<Note> notes;
-  final Function(String originalNoteId, Note? modifiedNote) onNoteModified;
+  final List<CardData> cards;
+  final Function(String originalCardId, CardData? modifiedCard) onCardModified;
   final bool isGridView;
   final bool showCategory;
   final bool showDateTime;
@@ -25,8 +22,8 @@ class HomePage extends StatefulWidget {
 
   const HomePage({
     super.key,
-    required this.notes,
-    required this.onNoteModified,
+    required this.cards,
+    required this.onCardModified,
     required this.isGridView,
     required this.showCategory,
     required this.showDateTime,
@@ -37,16 +34,13 @@ class HomePage extends StatefulWidget {
   State<HomePage> createState() => _HomePageState();
 }
 
-/// The state for the HomePage widget.
-/// It manages the filtering, sorting, and display logic for notes.
 class _HomePageState extends State<HomePage> {
-  // State variables for search, sort, and filter features.
   String _searchQuery = '';
   late final FocusNode _searchFocusNode;
   NoteSortOrder _currentSortOrder = NoteSortOrder.modifiedNewest;
   Set<String> _selectedCategories = {};
   Set<String> _tempSelectedCategories = {};
-  List<Note> _displayedNotes = [];
+  List<CardData> _displayedCards = [];
   bool _isLoading = true;
   Key _switcherKey = UniqueKey();
 
@@ -55,17 +49,15 @@ class _HomePageState extends State<HomePage> {
     super.initState();
     _searchFocusNode = FocusNode();
     _tempSelectedCategories = Set.from(_selectedCategories);
-    _loadNotesWithDelay();
+    _loadCardsWithDelay();
   }
 
-  /// Called when the parent widget (HomeNavigation) updates.
-  /// This is important to re-filter and re-sort notes if they change.
   @override
   void didUpdateWidget(covariant HomePage oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.notes != widget.notes ||
+    if (oldWidget.cards != widget.cards ||
         oldWidget.isGridView != widget.isGridView) {
-      _filterAndSortNotes();
+      _filterAndSortCards();
     }
   }
 
@@ -75,39 +67,35 @@ class _HomePageState extends State<HomePage> {
     super.dispose();
   }
 
-  /// A small delay to show a loading indicator briefly when notes are reloaded.
-  Future<void> _loadNotesWithDelay() async {
+  Future<void> _loadCardsWithDelay() async {
     setState(() => _isLoading = true);
     await Future.delayed(const Duration(milliseconds: 100));
-    _filterAndSortNotes();
+    _filterAndSortCards();
     setState(() => _isLoading = false);
   }
 
-  /// Retrieves all unique categories from the list of notes.
   Set<String> _getAllUniqueCategories() {
-    return widget.notes
-        .map((note) => note.category)
-        .where((category) => category.isNotEmpty)
+    return widget.cards
+        .map((card) => card.category)
+        .where((category) => category != null && category.isNotEmpty)
+        .cast<String>()
         .toSet();
   }
 
-  /// Filters notes based on search query and selected categories, then sorts them.
-  void _filterAndSortNotes() {
+  void _filterAndSortCards() {
     final query = _searchQuery.trim().toLowerCase();
 
-    // Filters notes based on the search query and selected categories.
-    final filteredAndSorted = widget.notes.where((note) {
+    final filteredAndSorted = widget.cards.where((card) {
       final textMatches =
           query.isEmpty ||
-          note.title.toLowerCase().contains(query) ||
-          note.content.toLowerCase().contains(query);
+          (card.title).toLowerCase().contains(query) ||
+          (card.content ?? '').toLowerCase().contains(query);
       final categoryMatches =
           _selectedCategories.isEmpty ||
-          _selectedCategories.contains(note.category);
+          _selectedCategories.contains(card.category ?? '');
       return textMatches && categoryMatches;
     }).toList();
 
-    // Sorts the filtered notes based on the current sort order.
     filteredAndSorted.sort((a, b) {
       switch (_currentSortOrder) {
         case NoteSortOrder.modifiedNewest:
@@ -115,26 +103,23 @@ class _HomePageState extends State<HomePage> {
         case NoteSortOrder.modifiedOldest:
           return a.modified.compareTo(b.modified);
         case NoteSortOrder.titleAscending:
-          return a.title.toLowerCase().compareTo(b.title.toLowerCase());
+          return (a.title).toLowerCase().compareTo((b.title).toLowerCase());
         case NoteSortOrder.categoryAscending:
-          final categoryComparison = a.category.toLowerCase().compareTo(
-            b.category.toLowerCase(),
+          final categoryComparison = (a.category ?? '').toLowerCase().compareTo(
+            (b.category ?? '').toLowerCase(),
           );
-          // If categories are the same, sort by title.
           return categoryComparison != 0
               ? categoryComparison
-              : a.title.toLowerCase().compareTo(b.title.toLowerCase());
+              : (a.title).toLowerCase().compareTo((b.title).toLowerCase());
       }
     });
 
-    // Updates the state with the new list of notes to display.
     setState(() {
-      _displayedNotes = filteredAndSorted;
+      _displayedCards = filteredAndSorted;
       _switcherKey = UniqueKey();
     });
   }
 
-  /// Shows a dialog to allow the user to filter notes by category.
   Future<void> _showFilterDialog() async {
     _tempSelectedCategories = Set.from(_selectedCategories);
     final uniqueCategories = _getAllUniqueCategories().toList()..sort();
@@ -159,7 +144,6 @@ class _HomePageState extends State<HomePage> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    // Option to select all categories.
                     CheckboxListTile(
                       title: const Text('All Categories'),
                       value: allSelectedTemp,
@@ -180,7 +164,6 @@ class _HomePageState extends State<HomePage> {
                       activeColor: accent,
                     ),
                     const Divider(),
-                    // Checkboxes for each unique category.
                     ...uniqueCategories.map((category) {
                       return CheckboxListTile(
                         title: Text(category),
@@ -206,7 +189,6 @@ class _HomePageState extends State<HomePage> {
             },
           ),
           actions: [
-            // Cancel button for the dialog.
             TextButton(
               style: TextButton.styleFrom(
                 backgroundColor: theme.brightness == Brightness.dark
@@ -217,7 +199,6 @@ class _HomePageState extends State<HomePage> {
               onPressed: () => Navigator.of(dialogContext).pop(null),
               child: const Text('Cancel'),
             ),
-            // Apply button to save the selected filters.
             TextButton(
               style: TextButton.styleFrom(
                 backgroundColor: theme.brightness == Brightness.dark
@@ -239,25 +220,69 @@ class _HomePageState extends State<HomePage> {
       },
     );
 
-    // If the user clicked apply, update the selected categories and re-filter notes.
     if (result != null) {
       setState(() {
         _selectedCategories = result;
-        _filterAndSortNotes();
+        _filterAndSortCards();
       });
     }
   }
 
-  /// Returns either a ListView or a MasonryGridView based on the user's setting.
+  // Helper widget for text & category & datetime rows
+  Widget _buildCardText(BuildContext context, CardData card) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          card.title.isNotEmpty ? card.title : 'Untitled',
+          style: Theme.of(context).textTheme.titleLarge?.copyWith(
+            color: Theme.of(context).colorScheme.tertiary,
+          ),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
+        const SizedBox(height: 4),
+        Text(
+          (card.content?.isNotEmpty == true) ? card.content! : 'No content',
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+            color: Theme.of(context).colorScheme.onSurface,
+          ),
+          maxLines: widget.isGridView ? 8 : 5,
+          overflow: TextOverflow.ellipsis,
+        ),
+        const SizedBox(height: 8),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            if (widget.showCategory && (card.category?.isNotEmpty ?? false))
+              Text(
+                card.category!,
+                style: Theme.of(
+                  context,
+                ).textTheme.bodySmall?.copyWith(color: Colors.white70),
+              ),
+            if (widget.showDateTime)
+              Text(
+                formatDynamicDate(card.modified),
+                style: Theme.of(
+                  context,
+                ).textTheme.bodySmall?.copyWith(color: Colors.white70),
+              ),
+          ],
+        ),
+      ],
+    );
+  }
+
   Widget _buildListOrGrid() {
-    // Shows a message if there are no notes.
-    if (_displayedNotes.isEmpty) {
+    if (_displayedCards.isEmpty) {
       return Center(
-        key: const ValueKey('empty_notes'),
+        key: const ValueKey('empty_cards'),
         child: Text(
-          widget.notes.isEmpty
-              ? 'You have no notes.'
-              : 'No notes match your search.',
+          widget.cards.isEmpty
+              ? 'You have no entries.'
+              : 'No entries match your search.',
           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
             color: Theme.of(context).colorScheme.onSurface.withAlpha(153),
           ),
@@ -265,45 +290,153 @@ class _HomePageState extends State<HomePage> {
       );
     }
 
-    // Displays notes in a staggered grid view.
     return widget.isGridView
         ? MasonryGridView.builder(
             key: const ValueKey('grid_view'),
             padding: const EdgeInsets.symmetric(horizontal: 16),
-            itemCount: _displayedNotes.length,
+            itemCount: _displayedCards.length,
             crossAxisSpacing: 14,
             mainAxisSpacing: 0,
             gridDelegate: const SliverSimpleGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 2,
             ),
             itemBuilder: (context, i) {
-              final note = _displayedNotes[i];
-              return NoteCard(
-                key: ValueKey(note.id),
-                note: note,
-                onNoteModified: widget.onNoteModified,
-                isGridViewMode: true,
-                allNotes: widget.notes,
-                showCategory: widget.showCategory,
-                showDateTime: widget.showDateTime,
+              final card = _displayedCards[i];
+              return GestureDetector(
+                key: ValueKey(card.id),
+                onTap: () {
+                  // Your tap handler here
+                },
+                child: Card(
+                  margin: const EdgeInsets.symmetric(vertical: 8),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  color: Colors.transparent,
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: card.imageUrl != null && card.imageUrl!.isNotEmpty
+                        ? (card.imageIsBackground == 0
+                              ? Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Image.file(
+                                      File(card.imageUrl!),
+                                      width: double.infinity,
+                                      height: 120,
+                                      fit: BoxFit.cover,
+                                    ),
+                                    Padding(
+                                      padding: const EdgeInsets.all(16.0),
+                                      child: _buildCardText(context, card),
+                                    ),
+                                  ],
+                                )
+                              : Stack(
+                                  children: [
+                                    Positioned.fill(
+                                      child: Image.file(
+                                        File(card.imageUrl!),
+                                        fit: BoxFit.cover,
+                                      ),
+                                    ),
+                                    Positioned.fill(
+                                      child: Container(
+                                        color:
+                                            (card.backgroundColor ??
+                                                    Theme.of(
+                                                      context,
+                                                    ).colorScheme.secondary)
+                                                .withAlpha(128),
+                                      ),
+                                    ),
+                                    Padding(
+                                      padding: const EdgeInsets.all(16.0),
+                                      child: _buildCardText(context, card),
+                                    ),
+                                  ],
+                                ))
+                        : Container(
+                            color:
+                                card.backgroundColor ??
+                                Theme.of(context).colorScheme.secondary,
+                            padding: const EdgeInsets.all(16.0),
+                            child: _buildCardText(context, card),
+                          ),
+                  ),
+                ),
               );
             },
           )
-        // Displays notes in a simple list view.
         : ListView.builder(
             key: const ValueKey('list_view'),
             padding: const EdgeInsets.symmetric(horizontal: 16),
-            itemCount: _displayedNotes.length,
+            itemCount: _displayedCards.length,
             itemBuilder: (context, i) {
-              final note = _displayedNotes[i];
-              return NoteCard(
-                key: ValueKey(note.id),
-                note: note,
-                onNoteModified: widget.onNoteModified,
-                isGridViewMode: false,
-                allNotes: widget.notes,
-                showCategory: widget.showCategory,
-                showDateTime: widget.showDateTime,
+              final card = _displayedCards[i];
+              return GestureDetector(
+                key: ValueKey(card.id),
+                onTap: () {
+                  // Your tap handler here
+                },
+                child: Card(
+                  margin: const EdgeInsets.symmetric(vertical: 8),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  color: Colors.transparent,
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: card.imageUrl != null && card.imageUrl!.isNotEmpty
+                        ? (card.imageIsBackground == 0
+                              ? Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Image.file(
+                                      File(card.imageUrl!),
+                                      width: double.infinity,
+                                      height: 120,
+                                      fit: BoxFit.cover,
+                                    ),
+                                    Padding(
+                                      padding: const EdgeInsets.all(16.0),
+                                      child: _buildCardText(context, card),
+                                    ),
+                                  ],
+                                )
+                              : Stack(
+                                  children: [
+                                    Positioned.fill(
+                                      child: Image.file(
+                                        File(card.imageUrl!),
+                                        fit: BoxFit.cover,
+                                      ),
+                                    ),
+                                    Positioned.fill(
+                                      child: Container(
+                                        color:
+                                            (card.backgroundColor ??
+                                                    Theme.of(
+                                                      context,
+                                                    ).colorScheme.secondary)
+                                                .withAlpha(128),
+                                      ),
+                                    ),
+                                    Padding(
+                                      padding: const EdgeInsets.all(16.0),
+                                      child: _buildCardText(context, card),
+                                    ),
+                                  ],
+                                ))
+                        : Container(
+                            color:
+                                card.backgroundColor ??
+                                Theme.of(context).colorScheme.secondary,
+                            padding: const EdgeInsets.all(16.0),
+                            child: _buildCardText(context, card),
+                          ),
+                  ),
+                ),
               );
             },
           );
@@ -320,7 +453,6 @@ class _HomePageState extends State<HomePage> {
         widget.selectedNavBarPosition == NavBarPosition.top;
 
     return GestureDetector(
-      // Tapping anywhere on the screen dismisses the keyboard.
       onTap: () => FocusScope.of(context).unfocus(),
       behavior: HitTestBehavior.opaque,
       child: Scaffold(
@@ -332,9 +464,8 @@ class _HomePageState extends State<HomePage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Search, filter, and sort bar.
                 Padding(
-                  padding: EdgeInsets.only(
+                  padding: const EdgeInsets.only(
                     top: 16,
                     bottom: 16,
                     left: 20,
@@ -351,7 +482,7 @@ class _HomePageState extends State<HomePage> {
                           autofocus: false,
                           onChanged: (q) {
                             setState(() => _searchQuery = q);
-                            _filterAndSortNotes();
+                            _filterAndSortCards();
                           },
                           onTap: () {
                             if (!_searchFocusNode.hasFocus) {
@@ -359,7 +490,7 @@ class _HomePageState extends State<HomePage> {
                             }
                           },
                           decoration: InputDecoration(
-                            hintText: 'Search notes...',
+                            hintText: 'Search entries...',
                             prefixIcon: const Icon(
                               Symbols.search_rounded,
                               fill: 1.0,
@@ -369,7 +500,6 @@ class _HomePageState extends State<HomePage> {
                               child: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  // Filter button.
                                   Theme(
                                     data: theme.copyWith(
                                       checkboxTheme: CheckboxThemeData(
@@ -399,15 +529,14 @@ class _HomePageState extends State<HomePage> {
                                       padding: EdgeInsets.zero,
                                     ),
                                   ),
-                                  // Sort button.
                                   PopupMenuButton<NoteSortOrder>(
                                     icon: const Icon(Symbols.sort_rounded),
-                                    tooltip: 'Sort notes',
+                                    tooltip: 'Sort entries',
                                     padding: EdgeInsets.zero,
                                     onSelected: (result) {
                                       setState(() {
                                         _currentSortOrder = result;
-                                        _filterAndSortNotes();
+                                        _filterAndSortCards();
                                       });
                                       _searchFocusNode.unfocus();
                                     },
@@ -455,7 +584,6 @@ class _HomePageState extends State<HomePage> {
                     ],
                   ),
                 ),
-                // The main area where notes are displayed.
                 Expanded(
                   child: AnimatedSwitcher(
                     duration: const Duration(milliseconds: 300),

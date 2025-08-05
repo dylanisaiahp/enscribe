@@ -1,176 +1,150 @@
 import 'package:flutter/material.dart';
-import 'note.dart';
-import '../pages/edit.dart';
+import 'package:intl/intl.dart';
 
-/// A StatelessWidget that displays a single note as a tappable card.
-/// It supports editing on tap and deletion on long press.
-class NoteCard extends StatelessWidget {
-  /// The note data to be displayed by this card.
-  final Note note;
+String formatDynamicDate(DateTime date) {
+  final now = DateTime.now();
+  final today = DateTime(now.year, now.month, now.day);
+  final yesterday = now.subtract(const Duration(days: 1));
+  final targetDay = DateTime(date.year, date.month, date.day);
 
-  /// A callback function that is triggered when a note is modified (edited or deleted).
-  /// It takes the original note ID and the new or null note as arguments.
-  final Function(String originalNoteId, Note? modifiedNote) onNoteModified;
+  if (targetDay.isAtSameMomentAs(today)) {
+    return DateFormat.jm().format(date);
+  } else if (targetDay.isAtSameMomentAs(
+    DateTime(yesterday.year, yesterday.month, yesterday.day),
+  )) {
+    return 'Yesterday, ${DateFormat.jm().format(date)}';
+  } else if (date.year == now.year) {
+    return DateFormat.yMMMd().add_jm().format(date);
+  } else {
+    return DateFormat.yMMMd().add_y().add_jm().format(date);
+  }
+}
 
-  /// Flag to determine if the card should be displayed in a grid view layout.
-  final bool isGridViewMode;
+enum CardType { note, task, verse, prayer }
 
-  /// Flag to control the visibility of the note's category.
-  final bool showCategory;
+class CardData {
+  final String id;
+  final CardType type;
+  final String title;
+  final String? category;
+  final Color? categoryColor;
+  final String? content; // For note, verse, prayer
+  final List<TaskItem>? tasks; // For task only
+  final DateTime created;
+  final DateTime modified;
+  final DateTime? notification; // Optional reminder date/time
+  final Color? backgroundColor;
+  final String? imageUrl; // Optional image (could be url or asset path)
+  final int imageIsBackground; // if true, image fills background with overlay
 
-  /// Flag to control the visibility of the note's modification date and time.
-  final bool showDateTime;
+  CardData({
+    required this.id,
+    required this.type,
+    required this.title,
+    this.category,
+    this.categoryColor,
+    this.content,
+    this.tasks,
+    DateTime? created,
+    DateTime? modified,
+    this.notification,
+    this.backgroundColor,
+    this.imageUrl,
+    this.imageIsBackground = 0,
+  }) : created = created ?? DateTime.now(),
+       modified = modified ?? created ?? DateTime.now();
 
-  /// A list of all notes, passed to the edit page for context (e.g., to check for duplicate titles).
-  final List<Note> allNotes;
-
-  const NoteCard({
-    super.key,
-    required this.note,
-    required this.onNoteModified,
-    required this.allNotes,
-    this.isGridViewMode = false,
-    this.showCategory = true,
-    this.showDateTime = true,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    // Access the current theme for consistent styling.
-    final theme = Theme.of(context);
-    final titleStyle = theme.textTheme.titleLarge!;
-    final bodyStyle = theme.textTheme.bodyMedium!;
-    final captionStyle = theme.textTheme.bodySmall!;
-    final background = theme.colorScheme.secondary;
-    final accent = theme.colorScheme.tertiary;
-
-    // Define a consistent style for the dialog buttons.
-    final buttonStyle = TextButton.styleFrom(
-      backgroundColor: theme.brightness == Brightness.dark
-          ? Color.lerp(background, Colors.white, 0.1)
-          : Color.lerp(background, Colors.black, 0.1),
-      foregroundColor: theme.colorScheme.onSurface,
-    );
-
-    return Card(
-      margin: const EdgeInsets.symmetric(vertical: 8.0),
-      color: background,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-      // InkWell provides tap feedback and handles gestures.
-      child: InkWell(
-        // Handles a single tap on the card.
-        onTap: () async {
-          // Unfocus any active text fields.
-          FocusManager.instance.primaryFocus?.unfocus(
-            disposition: UnfocusDisposition.scope,
-          );
-
-          // Navigate to the edit page and wait for a result.
-          final result = await Navigator.of(context).push<Note?>(
-            MaterialPageRoute(
-              builder: (context) =>
-                  EditNotePage(note: note, allNotes: allNotes),
-            ),
-          );
-
-          // Call the modification callback with the result from the edit page.
-          onNoteModified(note.id, result);
-        },
-        // Handles a long press on the card.
-        onLongPress: () async {
-          // Unfocus any active text fields.
-          FocusScope.of(context).unfocus();
-
-          // Show a dialog to confirm note deletion.
-          final bool? confirmDelete = await showDialog<bool>(
-            context: context,
-            builder: (BuildContext dialogContext) {
-              return AlertDialog(
-                title: const Text('Delete Note'),
-                content: const Text(
-                  'Are you sure? This action can not be undone.',
-                ),
-                actions: <Widget>[
-                  TextButton(
-                    style: buttonStyle,
-                    onPressed: () => Navigator.of(dialogContext).pop(false),
-                    child: const Text('Cancel'),
-                  ),
-                  TextButton(
-                    style: buttonStyle,
-                    onPressed: () => Navigator.of(dialogContext).pop(true),
-                    child: const Text('Delete'),
-                  ),
-                ],
-              );
-            },
-          );
-
-          // After the dialog, request focus on a new, empty node.
-          if (context.mounted) {
-            FocusScope.of(context).requestFocus(FocusNode());
-          }
-          // If the user confirmed deletion, call the modification callback with a null result.
-          if (confirmDelete == true) {
-            onNoteModified(note.id, null);
-          }
-        },
-        borderRadius: BorderRadius.circular(8),
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: isGridViewMode
-                ? MainAxisAlignment.spaceBetween
-                : MainAxisAlignment.start,
-            children: [
-              // Display the note's title, defaulting to 'Untitled'.
-              Align(
-                alignment: Alignment.topLeft,
-                child: Text(
-                  note.title.isNotEmpty ? note.title : 'Untitled',
-                  style: titleStyle.copyWith(color: accent),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-              const SizedBox(height: 4),
-              // Display the note's content, defaulting to 'No content'.
-              Text(
-                note.content.isNotEmpty ? note.content : 'No content',
-                style: bodyStyle.copyWith(color: theme.colorScheme.onSurface),
-                maxLines: isGridViewMode ? 8 : 5,
-                overflow: TextOverflow.ellipsis,
-              ),
-              const SizedBox(height: 12),
-              // Conditionally display the category and date in a row.
-              if (showCategory || showDateTime)
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    // Display the note's category.
-                    if (showCategory)
-                      Text(
-                        note.category,
-                        style: captionStyle.copyWith(
-                          color: theme.colorScheme.onSurface.withAlpha(153),
-                        ),
-                      ),
-                    // Display the note's modified date.
-                    if (showDateTime)
-                      Text(
-                        formatDynamicDate(note.modified),
-                        style: captionStyle.copyWith(
-                          color: theme.colorScheme.onSurface.withAlpha(153),
-                        ),
-                      ),
-                  ],
-                ),
-            ],
-          ),
-        ),
-      ),
+  CardData copyWith({
+    String? title,
+    String? category,
+    Color? categoryColor,
+    String? content,
+    List<TaskItem>? tasks,
+    DateTime? newModified,
+    DateTime? newCreated,
+    DateTime? notification,
+    Color? backgroundColor,
+    String? imageUrl,
+    int? imageIsBackground,
+  }) {
+    return CardData(
+      id: id,
+      type: type,
+      title: title ?? this.title,
+      category: category ?? this.category,
+      categoryColor: categoryColor ?? this.categoryColor,
+      content: content ?? this.content,
+      tasks: tasks ?? this.tasks,
+      created: newCreated ?? created,
+      modified: newModified ?? modified,
+      notification: notification ?? this.notification,
+      backgroundColor: backgroundColor ?? this.backgroundColor,
+      imageUrl: imageUrl ?? this.imageUrl,
+      imageIsBackground: imageIsBackground ?? this.imageIsBackground,
     );
   }
+
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'type': type.index,
+    'title': title,
+    'category': category,
+    'categoryColor': categoryColor?.toARGB32(),
+    'content': content,
+    'tasks': tasks?.map((t) => t.toJson()).toList(),
+    'created': created.toIso8601String(),
+    'modified': modified.toIso8601String(),
+    'notification': notification?.toIso8601String(),
+    'backgroundColor': backgroundColor?.toARGB32(),
+    'imageUrl': imageUrl,
+    'imageIsBackground': imageIsBackground,
+  };
+
+  factory CardData.fromJson(Map<String, dynamic> json) => CardData(
+    id: json['id'] as String,
+    type: CardType.values[json['type'] as int],
+    title: json['title'] as String,
+    category: json['category'] as String?,
+    categoryColor: json['categoryColor'] != null
+        ? Color(json['categoryColor'])
+        : null,
+    content: json['content'] as String?,
+    tasks: json['tasks'] != null
+        ? (json['tasks'] as List).map((t) => TaskItem.fromJson(t)).toList()
+        : null,
+    created: DateTime.tryParse(json['created'] as String) ?? DateTime.now(),
+    modified: DateTime.tryParse(json['modified'] as String) ?? DateTime.now(),
+    notification: json['notification'] != null
+        ? DateTime.tryParse(json['notification'])
+        : null,
+    backgroundColor: json['backgroundColor'] != null
+        ? Color(json['backgroundColor'])
+        : null,
+    imageUrl: json['imageUrl'] as String?,
+    imageIsBackground: json['imageIsBackground'] as int? ?? 0,
+  );
+}
+
+class TaskItem {
+  final String id;
+  final String text;
+  final bool isDone;
+
+  TaskItem({required this.id, required this.text, this.isDone = false});
+
+  TaskItem copyWith({String? text, bool? isDone}) {
+    return TaskItem(
+      id: id,
+      text: text ?? this.text,
+      isDone: isDone ?? this.isDone,
+    );
+  }
+
+  Map<String, dynamic> toJson() => {'id': id, 'text': text, 'isDone': isDone};
+
+  factory TaskItem.fromJson(Map<String, dynamic> json) => TaskItem(
+    id: json['id'] as String,
+    text: json['text'] as String,
+    isDone: json['isDone'] as bool,
+  );
 }

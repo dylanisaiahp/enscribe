@@ -1,262 +1,163 @@
 import 'package:flutter/material.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
-import '../data/note.dart'; // Import the Note data model.
 import '../nav.dart';
+import '../data/card.dart';
+import '../sections/create/notes.dart';
+import '../sections/create/tasks.dart';
+import '../sections/create/verse.dart';
+import '../sections/create/prayer.dart';
 
-/// A stateful widget for creating a new note.
-/// It takes a callback function to handle the creation of a new note
-/// and a list of all existing notes to populate the category suggestions.
-class CreateNotePage extends StatefulWidget {
-  final Function(Note) onNoteCreated;
-  final List<Note> allNotes;
+enum CreateType { none, notes, tasks, verse, prayer }
+
+class CreatePage extends StatefulWidget {
   final NavBarPosition selectedNavBarPosition;
+  final void Function(CardData) onCardCreated;
+  final List<String> categories;
+  final void Function()? onReturnHome;
 
-  const CreateNotePage({
+  const CreatePage({
     super.key,
-    required this.onNoteCreated,
-    required this.allNotes,
     required this.selectedNavBarPosition,
+    required this.onCardCreated,
+    required this.categories,
+    this.onReturnHome,
   });
 
   @override
-  State<CreateNotePage> createState() => _CreateNotePageState();
+  State<CreatePage> createState() => _CreatePageState();
 }
 
-/// The state class for the CreateNotePage widget.
-class _CreateNotePageState extends State<CreateNotePage> {
-  // Text controllers to manage the input for title, category, and content.
-  final _titleController = TextEditingController();
-  final _categoryController = TextEditingController();
-  final _contentController = TextEditingController();
-  // A focus node to control the focus of the category text field.
-  final _categoryFocusNode = FocusNode();
+class _CreatePageState extends State<CreatePage> {
+  CreateType _selected = CreateType.none;
 
-  @override
-  void dispose() {
-    // Dispose of all controllers and focus nodes to prevent memory leaks.
-    _titleController.dispose();
-    _categoryController.dispose();
-    _contentController.dispose();
-    _categoryFocusNode.dispose();
-    super.dispose();
-  }
-
-  /// Extracts all unique categories from the list of all notes.
-  /// It maps each note to its category, filters out empty categories,
-  /// and returns a Set to ensure uniqueness.
-  Set<String> _getAllUniqueCategories() => widget.allNotes
-      .map((note) => note.category)
-      .where((category) => category.isNotEmpty)
-      .toSet();
-
-  /// Creates a new Note object and calls the onNoteCreated callback.
-  void _saveNote() {
-    // Unfocus any active text field to dismiss the keyboard.
-    FocusScope.of(context).unfocus();
-
-    // Create a new Note instance with current data and timestamps.
-    final note = Note(
-      id: DateTime.now().millisecondsSinceEpoch.toString(),
-      title: _titleController.text.trim(),
-      category: _categoryController.text.trim(),
-      content: _contentController.text.trim(),
-      created: DateTime.now(),
-      modified: DateTime.now(),
-    );
-
-    // Call the callback function provided by the parent widget.
-    widget.onNoteCreated(note);
-
-    // Clear all text fields after saving the note.
-    _titleController.clear();
-    _categoryController.clear();
-    _contentController.clear();
+  void _selectType(CreateType type) {
+    setState(() {
+      _selected = type;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    // Get the current theme to style the widgets.
     final theme = Theme.of(context);
-    final background = theme.colorScheme.secondary;
-    final onSurface = theme.colorScheme.onSurface;
-    final hintColor = onSurface.withAlpha(153);
-
-    final bool isNavBarTop =
-        widget.selectedNavBarPosition == NavBarPosition.top;
+    final isNavBarTop = widget.selectedNavBarPosition == NavBarPosition.top;
 
     return Scaffold(
-      // The main layout widget for the screen.
       body: SafeArea(
         top: !isNavBarTop,
         bottom: false,
-        child: MediaQuery.removePadding(
-          context: context,
-          child: GestureDetector(
-            // Allows dismissing the keyboard by tapping outside of a text field.
-            onTap: () => FocusScope.of(context).unfocus(),
-            behavior:
-                HitTestBehavior.opaque, // Ensures the entire area is tappable.
-            child: Padding(
-              padding: EdgeInsets.only(
-                top: 16,
-                bottom: 80,
-                left: 20,
-                right: 20,
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Text field for the note's title.
-                  TextField(
-                    textCapitalization: TextCapitalization.sentences,
-                    autocorrect: true,
-                    enableSuggestions: true,
-                    controller: _titleController,
-                    style: TextStyle(color: onSurface),
-                    decoration: InputDecoration(
-                      hintText: 'Title',
-                      hintStyle: TextStyle(color: hintColor),
-                      prefixIcon: const Icon(Symbols.title_rounded, fill: 1.0),
-                      filled: true,
-                      fillColor: background,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: BorderSide.none,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 16), // Spacer.
-                  // Text field for the note's category.
-                  TextField(
-                    textCapitalization: TextCapitalization.sentences,
-                    autocorrect: true,
-                    enableSuggestions: true,
-                    maxLength: 12, // Limits the category length.
-                    focusNode: _categoryFocusNode,
-                    controller: _categoryController,
-                    style: TextStyle(color: onSurface),
-                    decoration: InputDecoration(
-                      counterText: '', // Hides the character counter.
-                      hintText: 'Category',
-                      hintStyle: TextStyle(color: hintColor),
-                      prefixIcon: const Icon(
-                        Symbols.category_rounded,
-                        fill: 1.0,
-                      ),
-                      filled: true,
-                      fillColor: background,
-                      // Suffix icon with a PopupMenuButton for category suggestions.
-                      suffixIcon: PopupMenuButton<String>(
-                        icon: Icon(
-                          Symbols.filter_list_rounded,
-                          color: onSurface,
-                        ),
-                        tooltip: 'Select category',
-                        onSelected: (selectedCategory) {
-                          setState(() {
-                            _categoryController.text =
-                                selectedCategory; // Update the text field with the selected category.
-                          });
-                          _categoryFocusNode.unfocus(); // Dismiss the keyboard.
-                        },
-                        itemBuilder: (context) {
-                          final uniqueCategories =
-                              _getAllUniqueCategories().toList()
-                                ..sort(); // Get and sort unique categories.
-                          if (uniqueCategories.isEmpty) {
-                            // Show a message if there are no existing categories.
-                            return [
-                              const PopupMenuItem<String>(
-                                enabled: false,
-                                child: Text('No categories created yet'),
-                              ),
-                            ];
-                          }
-                          // Create a menu item for each unique category.
-                          return uniqueCategories
-                              .map(
-                                (category) => PopupMenuItem<String>(
-                                  value: category,
-                                  child: Text(category),
-                                ),
-                              )
-                              .toList();
-                        },
-                      ),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: BorderSide.none,
-                      ),
-                      suffixIconConstraints: const BoxConstraints(
-                        minWidth: 48,
-                        minHeight: 48,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 16), // Spacer.
-                  // Expanded text field for the note's content.
-                  Expanded(
-                    child: TextField(
-                      textCapitalization: TextCapitalization.sentences,
-                      autocorrect: true,
-                      enableSuggestions: true,
-                      controller: _contentController,
-                      style: TextStyle(color: onSurface),
-                      decoration: InputDecoration(
-                        hintText: 'Write your note here…',
-                        hintStyle: TextStyle(color: hintColor),
-                        prefixIcon: Padding(
-                          // Align the note icon to the top left of the text field.
-                          padding: const EdgeInsets.only(top: 10),
-                          child: Align(
-                            alignment: Alignment.topCenter,
-                            widthFactor: 1.0,
-                            child: const Icon(Symbols.note_rounded, fill: 1.0),
-                          ),
-                        ),
-                        filled: true,
-                        fillColor: background,
-                        contentPadding: const EdgeInsets.all(12),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: BorderSide.none,
-                        ),
-                      ),
-                      keyboardType:
-                          TextInputType.multiline, // Enables multiline input.
-                      expands:
-                          true, // Allows the text field to expand to fill available space.
-                      maxLines: null,
-                      minLines: null,
-                      textAlignVertical:
-                          TextAlignVertical.top, // Aligns text to the top.
-                    ),
-                  ),
-                ],
-              ),
+        child: Padding(
+          padding: const EdgeInsets.all(8),
+          child: _buildContent(theme),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildContent(ThemeData theme) {
+    switch (_selected) {
+      case CreateType.notes:
+        return CreateNotesView(
+          onBack: () => _selectType(CreateType.none),
+          onSave: (cardData) {
+            widget.onCardCreated(cardData);
+            widget.onReturnHome?.call();
+          },
+          categories: widget.categories,
+        );
+      case CreateType.tasks:
+        return CreateTasksView(onBack: () => _selectType(CreateType.none));
+      case CreateType.verse:
+        return CreateVerseView(onBack: () => _selectType(CreateType.none));
+      case CreateType.prayer:
+        return CreatePrayerView(onBack: () => _selectType(CreateType.none));
+      case CreateType.none:
+        return _buildSelector(theme);
+    }
+  }
+
+  Widget _buildSelector(ThemeData theme) {
+    final background = theme.colorScheme.secondary;
+    final accent = theme.colorScheme.tertiary;
+    final onSurface = theme.colorScheme.onSurface;
+
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            'Create New Entry',
+            style: theme.textTheme.titleLarge?.copyWith(color: accent),
+          ),
+          const SizedBox(height: 24),
+          Container(
+            width: 260,
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: background,
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Column(
+              children: [
+                _buildCreateButton(
+                  icon: Symbols.note_add_rounded,
+                  label: 'Note',
+                  color: onSurface,
+                  labelStyle: theme.textTheme.labelLarge,
+                  onTap: () => _selectType(CreateType.notes),
+                ),
+                const SizedBox(height: 12),
+                _buildCreateButton(
+                  icon: Symbols.checklist_rounded,
+                  label: 'Task',
+                  color: onSurface,
+                  labelStyle: theme.textTheme.labelLarge,
+                  onTap: () => _selectType(CreateType.tasks),
+                ),
+                const SizedBox(height: 12),
+                _buildCreateButton(
+                  icon: Symbols.auto_stories_rounded,
+                  label: 'Verse',
+                  color: onSurface,
+                  labelStyle: theme.textTheme.labelLarge,
+                  onTap: () => _selectType(CreateType.verse),
+                ),
+                const SizedBox(height: 12),
+                _buildCreateButton(
+                  icon: Symbols.folded_hands_rounded,
+                  label: 'Prayer',
+                  color: onSurface,
+                  labelStyle: theme.textTheme.labelLarge,
+                  onTap: () => _selectType(CreateType.prayer),
+                ),
+              ],
             ),
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCreateButton({
+    required IconData icon,
+    required String label,
+    required Color color,
+    required TextStyle? labelStyle,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      borderRadius: BorderRadius.circular(12),
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+        decoration: BoxDecoration(borderRadius: BorderRadius.circular(12)),
+        child: Row(
+          children: [
+            Icon(icon, color: color, fill: 1.0),
+            const SizedBox(width: 12),
+            Text(label, style: labelStyle),
+          ],
         ),
       ),
-      // The floating action button to save the note.
-      floatingActionButton: SizedBox(
-        height: 48,
-        width: 96,
-        child: FloatingActionButton.extended(
-          onPressed:
-              _saveNote, // The function to call when the button is pressed.
-          label: const Text('Create'),
-          backgroundColor: background,
-          foregroundColor: onSurface,
-          elevation: 0,
-          extendedPadding: const EdgeInsets.symmetric(
-            horizontal: 12,
-            vertical: 6,
-          ),
-        ),
-      ),
-      floatingActionButtonLocation:
-          FloatingActionButtonLocation.endFloat, // Positions the FAB.
     );
   }
 }

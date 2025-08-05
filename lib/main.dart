@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'data/note.dart';
+import 'data/card.dart';
 import 'pages/load.dart';
 import 'data/themes.dart';
 import 'nav.dart';
@@ -18,8 +18,8 @@ class EnscribeApp extends StatefulWidget {
 }
 
 class _EnscribeAppState extends State<EnscribeApp> {
-  final NoteStorage _noteStorage = NoteStorage();
-  final ValueNotifier<List<Note>> _notesNotifier = ValueNotifier([]);
+  final CardStorage _cardStorage = CardStorage();
+  final ValueNotifier<List<CardData>> _cardNotifier = ValueNotifier([]);
 
   EnscribeTheme _selectedTheme = EnscribeTheme.graphene;
   bool _isGridView = false;
@@ -38,8 +38,8 @@ class _EnscribeAppState extends State<EnscribeApp> {
 
   @override
   void dispose() {
-    _notesNotifier.dispose();
-    _noteStorage.dispose();
+    _cardNotifier.dispose();
+    _cardStorage.dispose();
     super.dispose();
   }
 
@@ -47,7 +47,7 @@ class _EnscribeAppState extends State<EnscribeApp> {
     final stopwatch = Stopwatch()..start();
 
     await _loadPreferences();
-    await _loadNotes();
+    await _loadCards();
 
     const int minDurationMs = 400;
     final elapsed = stopwatch.elapsedMilliseconds;
@@ -62,7 +62,7 @@ class _EnscribeAppState extends State<EnscribeApp> {
   }
 
   Future<void> _loadPreferences() async {
-    final themeName = await _noteStorage.getPreference('selectedTheme');
+    final themeName = await _cardStorage.getPreference('selectedTheme');
     if (themeName != null) {
       _selectedTheme = EnscribeTheme.values.firstWhere(
         (e) => e.toString() == 'EnscribeTheme.$themeName',
@@ -70,14 +70,14 @@ class _EnscribeAppState extends State<EnscribeApp> {
       );
     }
 
-    _isGridView = (await _noteStorage.getPreference('isGridView')) == 'true';
+    _isGridView = (await _cardStorage.getPreference('isGridView')) == 'true';
     _showCategory =
-        (await _noteStorage.getPreference('showCategory')) == 'true';
+        (await _cardStorage.getPreference('showCategory')) == 'true';
     _showDateTime =
-        (await _noteStorage.getPreference('showDateTime')) == 'true';
+        (await _cardStorage.getPreference('showDateTime')) == 'true';
 
     // NEW: Load saved NavBar position, default to bottom if null
-    final navBarPositionString = await _noteStorage.getPreference(
+    final navBarPositionString = await _cardStorage.getPreference(
       'navBarPosition',
     );
     if (navBarPositionString != null) {
@@ -91,30 +91,30 @@ class _EnscribeAppState extends State<EnscribeApp> {
   }
 
   Future<void> _savePreference(String key, String value) async {
-    await _noteStorage.savePreference(key, value);
+    await _cardStorage.savePreference(key, value);
     await _loadPreferences();
   }
 
-  Future<void> _loadNotes() async {
-    final loadedNotes = await _noteStorage.getNotes();
-    _notesNotifier.value = loadedNotes;
+  Future<void> _loadCards() async {
+    final loadedCards = await _cardStorage.getCards();
+    _cardNotifier.value = loadedCards;
   }
 
-  Future<void> _onNoteCreated(Note newNote) async {
-    await _noteStorage.addNote(newNote);
-    await _loadNotes();
+  Future<void> _onCardCreated(CardData newCard) async {
+    await _cardStorage.addCard(newCard);
+    await _loadCards();
   }
 
-  Future<void> _onNoteModified(
-    String originalNoteId,
-    Note? modifiedNote,
+  Future<void> _onCardModified(
+    String originalCardId,
+    CardData? modifiedCard,
   ) async {
-    if (modifiedNote == null) {
-      await _noteStorage.deleteNote(originalNoteId);
+    if (modifiedCard == null) {
+      await _cardStorage.deleteCard(originalCardId);
     } else {
-      await _noteStorage.updateNote(modifiedNote);
+      await _cardStorage.updateCard(modifiedCard);
     }
-    await _loadNotes();
+    await _loadCards();
   }
 
   void _onThemeChanged(EnscribeTheme newTheme) {
@@ -153,13 +153,13 @@ class _EnscribeAppState extends State<EnscribeApp> {
       theme: currentTheme,
       home: _isLoading
           ? const LoadingPage()
-          : ValueListenableBuilder<List<Note>>(
-              valueListenable: _notesNotifier,
-              builder: (context, notes, child) {
+          : ValueListenableBuilder<List<CardData>>(
+              valueListenable: _cardNotifier,
+              builder: (context, cards, child) {
                 return HomeNavigation(
-                  notes: notes,
-                  onNoteCreated: _onNoteCreated,
-                  onNoteModified: _onNoteModified,
+                  cards: cards,
+                  onCardCreated: _onCardCreated,
+                  onCardModified: _onCardModified,
                   selectedTheme: _selectedTheme,
                   onThemeChanged: _onThemeChanged,
                   isGridView: _isGridView,

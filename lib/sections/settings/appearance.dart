@@ -161,7 +161,7 @@ class _AppearanceSectionState extends State<AppearanceSection>
                             mainAxisSpacing: 12,
                             crossAxisSpacing: 12,
                             physics: const NeverScrollableScrollPhysics(),
-                            childAspectRatio: isNarrow ? 2.4 : 3.2,
+                            childAspectRatio: isNarrow ? 1.5 : 2.5,
                             children: EnscribeTheme.values.map((theme) {
                               final info = themeDescriptions[theme]!;
                               final colors = themeColors[theme]!;
@@ -170,7 +170,6 @@ class _AppearanceSectionState extends State<AppearanceSection>
                               return GestureDetector(
                                 onTap: () => widget.onThemeChanged(theme),
                                 child: AnimatedContainer(
-                                  height: 256,
                                   duration: const Duration(milliseconds: 150),
                                   padding: const EdgeInsets.symmetric(
                                     horizontal: 12,

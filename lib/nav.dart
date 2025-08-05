@@ -4,15 +4,15 @@ import 'package:flutter/services.dart';
 import 'pages/home.dart';
 import 'pages/create.dart';
 import 'pages/settings.dart';
-import '../data/note.dart';
+import '../data/card.dart';
 import 'data/themes.dart';
 
 enum NavBarPosition { top, bottom, left, right }
 
 class HomeNavigation extends StatefulWidget {
-  final List<Note> notes;
-  final Function(Note) onNoteCreated;
-  final Function(String originalNoteId, Note? modifiedNote) onNoteModified;
+  final List<CardData> cards;
+  final Function(CardData) onCardCreated;
+  final Function(String originalCardId, CardData? modifiedCard) onCardModified;
   final EnscribeTheme selectedTheme;
   final void Function(EnscribeTheme) onThemeChanged;
   final bool isGridView;
@@ -22,14 +22,14 @@ class HomeNavigation extends StatefulWidget {
   final ValueChanged<bool> onToggleDateTime;
   final ValueChanged<bool> onToggleCategory;
 
-  final NavBarPosition selectedNavBarPosition; // <-- New
-  final ValueChanged<NavBarPosition> onNavBarPositionChanged; // <-- New
+  final NavBarPosition selectedNavBarPosition;
+  final ValueChanged<NavBarPosition> onNavBarPositionChanged;
 
   const HomeNavigation({
     super.key,
-    required this.notes,
-    required this.onNoteCreated,
-    required this.onNoteModified,
+    required this.cards,
+    required this.onCardCreated,
+    required this.onCardModified,
     required this.selectedTheme,
     required this.onThemeChanged,
     required this.isGridView,
@@ -47,6 +47,14 @@ class HomeNavigation extends StatefulWidget {
 }
 
 class _HomeNavigationState extends State<HomeNavigation> {
+  Set<String> _getAllUniqueCategories() {
+    return widget.cards
+        .map((card) => card.category)
+        .where((category) => category != null && category.isNotEmpty)
+        .cast<String>()
+        .toSet();
+  }
+
   int _selectedIndex = 0;
 
   void _onItemTapped(int index) => setState(() => _selectedIndex = index);
@@ -64,7 +72,7 @@ class _HomeNavigationState extends State<HomeNavigation> {
         NavigationDestination(
           icon: Icon(Symbols.dashboard_rounded, fill: 0.0, size: 24),
           selectedIcon: Icon(Symbols.dashboard_rounded, fill: 1.0, size: 24),
-          label: 'Notes',
+          label: 'Home',
         ),
         NavigationDestination(
           icon: Icon(Symbols.note_stack_add_rounded, fill: 0.0, size: 24),
@@ -116,7 +124,7 @@ class _HomeNavigationState extends State<HomeNavigation> {
                   fill: 1.0,
                   size: 24,
                 ),
-                label: Text('Notes'),
+                label: Text('Home'),
               ),
               NavigationRailDestination(
                 padding: EdgeInsets.symmetric(vertical: 16),
@@ -148,13 +156,14 @@ class _HomeNavigationState extends State<HomeNavigation> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final uniqueCategories = _getAllUniqueCategories().toList()..sort();
 
     late final Widget currentPage;
     switch (_selectedIndex) {
       case 0:
         currentPage = HomePage(
-          notes: widget.notes,
-          onNoteModified: widget.onNoteModified,
+          cards: widget.cards,
+          onCardModified: widget.onCardModified,
           isGridView: widget.isGridView,
           showCategory: widget.showCategory,
           showDateTime: widget.showDateTime,
@@ -162,14 +171,22 @@ class _HomeNavigationState extends State<HomeNavigation> {
         );
         break;
       case 1:
-        currentPage = CreateNotePage(
-          onNoteCreated: (note) {
-            widget.onNoteCreated(note);
-            _onItemTapped(0);
-          },
-          allNotes: widget.notes,
+        currentPage = CreatePage(
           selectedNavBarPosition: widget.selectedNavBarPosition,
+          onCardCreated: (cardData) {
+            widget.onCardCreated(cardData);
+            setState(() {
+              _selectedIndex = 0;
+            });
+          },
+          categories: uniqueCategories,
+          onReturnHome: () {
+            setState(() {
+              _selectedIndex = 0;
+            });
+          },
         );
+
         break;
       case 2:
         currentPage = SettingsPage(
@@ -187,8 +204,8 @@ class _HomeNavigationState extends State<HomeNavigation> {
         break;
       default:
         currentPage = HomePage(
-          notes: widget.notes,
-          onNoteModified: widget.onNoteModified,
+          cards: widget.cards,
+          onCardModified: widget.onCardModified,
           isGridView: widget.isGridView,
           showCategory: widget.showCategory,
           showDateTime: widget.showDateTime,
