@@ -13,6 +13,8 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  flutter_localizations:
+    sdk: flutter
 
   sqflite: ^2.3.3+1
   path: ^1.8.3
@@ -44,4 +46,5 @@ flutter_launcher_icons:
   adaptive_icon_foreground_inset: 28
 
 flutter:
+  generate: true
   uses-material-design: true

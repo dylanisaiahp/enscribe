@@ -1,0 +1,154 @@
+{
+  "@@locale": "en",
+  "appTitle": "Enscribe",
+  "@appTitle": {
+    "description": "The title of the application"
+  },
+
+  "home": "Home",
+  "@home": {
+    "description": "Home navigation label"
+  },
+
+  "create": "Create",
+  "@create": {
+    "description": "Create navigation label"
+  },
+
+  "settings": "Settings",
+  "@settings": {
+    "description": "Settings navigation label"
+  },
+
+  "note": "Note",
+  "@note": {
+    "description": "Note type label"
+  },
+
+  "task": "Task",
+  "@task": {
+    "description": "Task type label"
+  },
+
+  "verse": "Verse",
+  "@verse": {
+    "description": "Verse type label"
+  },
+
+  "prayer": "Prayer",
+  "@prayer": {
+    "description": "Prayer type label"
+  },
+
+  "title": "Title",
+  "@title": {
+    "description": "Title field label"
+  },
+
+  "titleRequired": "Title is required",
+  "@titleRequired": {
+    "description": "Error message when title is empty"
+  },
+
+  "titleTooShort": "Title must be at least 2 characters long",
+  "@titleTooShort": {
+    "description": "Error message when title is too short"
+  },
+
+  "titleTooLong": "Title must be less than 100 characters",
+  "@titleTooLong": {
+    "description": "Error message when title is too long"
+  },
+
+  "category": "Category",
+  "@category": {
+    "description": "Category field label"
+  },
+
+  "categoryTooShort": "Category must be at least 2 characters",
+  "@categoryTooShort": {
+    "description": "Error message when category is too short"
+  },
+
+  "categoryTooLong": "Category must be less than 20 characters",
+  "@categoryTooLong": {
+    "description": "Error message when category is too long"
+  },
+
+  "noteContent": "Note Content",
+  "@noteContent": {
+    "description": "Note content field label"
+  },
+
+  "contentTooLong": "Content must be less than 10,000 characters",
+  "@contentTooLong": {
+    "description": "Error message when content is too long"
+  },
+
+  "noContent": "No content",
+  "@noContent": {
+    "description": "Placeholder text when card has no content"
+  },
+
+  "yesterday": "Yesterday",
+  "@yesterday": {
+    "description": "Yesterday date label"
+  },
+
+  "selectCategory": "Select category",
+  "@selectCategory": {
+    "description": "Tooltip for category selection"
+  },
+
+  "imageNotFound": "Selected image file could not be found",
+  "@imageNotFound": {
+    "description": "Error message when selected image file is missing"
+  },
+
+  "imageSelectionError": "Error selecting image: {error}",
+  "@imageSelectionError": {
+    "description": "Error message when image selection fails",
+    "placeholders": {
+      "error": {
+        "type": "String",
+        "description": "The error message"
+      }
+    }
+  },
+
+  "reminderSetFor": "Reminder set for: {dateTime}",
+  "@reminderSetFor": {
+    "description": "Label showing when reminder is set",
+    "placeholders": {
+      "dateTime": {
+        "type": "String",
+        "description": "The formatted date and time"
+      }
+    }
+  },
+
+  "updateDownloaded": "Update downloaded. Launching installer...",
+  "@updateDownloaded": {
+    "description": "Message shown when update is downloaded"
+  },
+
+  "save": "Save",
+  "@save": {
+    "description": "Save button label"
+  },
+
+  "cancel": "Cancel",
+  "@cancel": {
+    "description": "Cancel button label"
+  },
+
+  "delete": "Delete",
+  "@delete": {
+    "description": "Delete button label"
+  },
+
+  "edit": "Edit",
+  "@edit": {
+    "description": "Edit button label"
+  }
+}

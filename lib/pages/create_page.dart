@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
 import '../nav.dart';
 import '../data/card.dart';
-import '../sections/create/notes.dart';
+import '../components/note_editor.dart';
 import '../sections/create/tasks.dart';
 import '../sections/create/verse.dart';
 import '../sections/create/prayer.dart';
@@ -56,13 +56,14 @@ class _CreatePageState extends State<CreatePage> {
   Widget _buildContent(ThemeData theme) {
     switch (_selected) {
       case CreateType.notes:
-        return CreateNotesView(
+        return NoteEditor.create(
           onBack: () => _selectType(CreateType.none),
           onSave: (cardData) {
             widget.onCardCreated(cardData);
             widget.onReturnHome?.call();
           },
           categories: widget.categories,
+          onReturnHome: widget.onReturnHome,
         );
       case CreateType.tasks:
         return CreateTasksView(onBack: () => _selectType(CreateType.none));

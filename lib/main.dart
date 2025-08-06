@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+
+import 'l10n/app_localizations.dart';
 import 'data/card.dart';
-import 'pages/load.dart';
+import 'pages/loading_page.dart';
 import 'data/themes.dart';
 import 'nav.dart';
 import 'data/storage.dart';
@@ -151,6 +153,8 @@ class _EnscribeAppState extends State<EnscribeApp> {
       debugShowCheckedModeBanner: false,
       title: 'Enscribe',
       theme: currentTheme,
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
       home: _isLoading
           ? const LoadingPage()
           : ValueListenableBuilder<List<CardData>>(

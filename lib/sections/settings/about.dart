@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import '../../l10n/app_localizations.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -107,19 +108,35 @@ class _AboutSectionState extends State<AboutSection> {
       final fileName = url.split('/').last;
       final filePath = '${directory.path}/$fileName';
 
-      // Download the file.
-      final response = await http.get(Uri.parse(url));
+      // Download the file with timeout
+      final response = await http
+          .get(Uri.parse(url))
+          .timeout(
+            const Duration(seconds: 30),
+            onTimeout: () {
+              throw Exception('Download timeout');
+            },
+          );
 
-      // Check if the download was successful.
       if (response.statusCode == 200) {
         final file = File(filePath);
+
+        // Ensure directory exists
+        await file.parent.create(recursive: true);
+
+        // Write file with error handling
         await file.writeAsBytes(response.bodyBytes);
+
+        // Verify file was written successfully
+        if (!await file.exists()) {
+          throw Exception('Failed to save file');
+        }
 
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Update downloaded. Launching installer...'),
-            duration: Duration(seconds: 4),
+          SnackBar(
+            content: Text(AppLocalizations.of(context)!.updateDownloaded),
+            duration: const Duration(seconds: 4),
           ),
         );
 
@@ -161,12 +178,25 @@ class _AboutSectionState extends State<AboutSection> {
             ),
           );
         }
+        // Launch the installer with error handling
+        try {
+          await OpenFilex.open(filePath);
+        } catch (e) {
+          if (!mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Error opening installer: $e'),
+              duration: const Duration(seconds: 4),
+            ),
+          );
+        }
       } else {
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to download update: ${response.statusCode}'),
-            backgroundColor: theme.colorScheme.error,
+            content: Text(
+              'Failed to download file: ${response.statusCode} - ${response.reasonPhrase ?? 'Unknown error'}',
+            ),
             duration: const Duration(seconds: 4),
           ),
         );
@@ -175,8 +205,9 @@ class _AboutSectionState extends State<AboutSection> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('An error occurred during download: $e'),
-          backgroundColor: theme.colorScheme.error,
+          content: Text(
+              'Could not complete download. Please check your connection and storage permissions. (Details: ${e
+                  .toString()})'),
           duration: const Duration(seconds: 4),
         ),
       );
@@ -265,7 +296,8 @@ class _AboutSectionState extends State<AboutSection> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('An error occurred: $e'),
+          content: Text(
+              'Could not check for updates. Please check your connection or try again later. (Details: $e)'),
           backgroundColor: theme.colorScheme.error,
           duration: const Duration(seconds: 4),
         ),

@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
+import 'l10n/app_localizations.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
 import 'package:flutter/services.dart';
-import 'pages/home.dart';
-import 'pages/create.dart';
-import 'pages/settings.dart';
+import 'pages/home_page.dart';
+import 'pages/create_page.dart';
+import 'pages/settings_page.dart';
 import '../data/card.dart';
 import 'data/themes.dart';
 
@@ -47,12 +48,19 @@ class HomeNavigation extends StatefulWidget {
 }
 
 class _HomeNavigationState extends State<HomeNavigation> {
+  Set<String>? _cachedCategories;
+  int _cachedCardCount = -1;
+
   Set<String> _getAllUniqueCategories() {
-    return widget.cards
-        .map((card) => card.category)
-        .where((category) => category != null && category.isNotEmpty)
-        .cast<String>()
-        .toSet();
+    if (_cachedCategories == null || widget.cards.length != _cachedCardCount) {
+      _cachedCategories = widget.cards
+          .map((card) => card.category)
+          .where((category) => category != null && category.isNotEmpty)
+          .cast<String>()
+          .toSet();
+      _cachedCardCount = widget.cards.length;
+    }
+    return _cachedCategories!;
   }
 
   int _selectedIndex = 0;
@@ -60,6 +68,7 @@ class _HomeNavigationState extends State<HomeNavigation> {
   void _onItemTapped(int index) => setState(() => _selectedIndex = index);
 
   Widget _buildNavigationBar(ThemeData theme) {
+    final l10n = AppLocalizations.of(context)!;
     final navBar = NavigationBar(
       backgroundColor: theme.colorScheme.surface,
       height: 72,
@@ -68,25 +77,33 @@ class _HomeNavigationState extends State<HomeNavigation> {
       selectedIndex: _selectedIndex,
       onDestinationSelected: _onItemTapped,
       labelBehavior: NavigationDestinationLabelBehavior.onlyShowSelected,
-      destinations: const [
+      destinations: [
         NavigationDestination(
-          icon: Icon(Symbols.dashboard_rounded, fill: 0.0, size: 24),
-          selectedIcon: Icon(Symbols.dashboard_rounded, fill: 1.0, size: 24),
-          label: 'Home',
+          icon: const Icon(Symbols.dashboard_rounded, fill: 0.0, size: 24),
+          selectedIcon: const Icon(
+            Symbols.dashboard_rounded,
+            fill: 1.0,
+            size: 24,
+          ),
+          label: l10n.home,
         ),
         NavigationDestination(
-          icon: Icon(Symbols.note_stack_add_rounded, fill: 0.0, size: 24),
-          selectedIcon: Icon(
+          icon: const Icon(Symbols.note_stack_add_rounded, fill: 0.0, size: 24),
+          selectedIcon: const Icon(
             Symbols.note_stack_add_rounded,
             fill: 1.0,
             size: 24,
           ),
-          label: 'Create',
+          label: l10n.create,
         ),
         NavigationDestination(
-          icon: Icon(Symbols.settings_rounded, fill: 0.0, size: 24),
-          selectedIcon: Icon(Symbols.settings_rounded, fill: 1.0, size: 24),
-          label: 'Settings',
+          icon: const Icon(Symbols.settings_rounded, fill: 0.0, size: 24),
+          selectedIcon: const Icon(
+            Symbols.settings_rounded,
+            fill: 1.0,
+            size: 24,
+          ),
+          label: l10n.settings,
         ),
       ],
     );
@@ -109,42 +126,51 @@ class _HomeNavigationState extends State<HomeNavigation> {
         // For left or right, wrap in RotatedBox or a vertical container
         // but Flutter's NavigationBar is designed horizontally
         // You might want to build a custom vertical nav or use NavigationRail instead
+        final l10n = AppLocalizations.of(context)!;
         return SizedBox(
           width: 64,
           child: NavigationRail(
             selectedIndex: _selectedIndex,
             onDestinationSelected: _onItemTapped,
             labelType: NavigationRailLabelType.selected,
-            destinations: const [
+            destinations: [
               NavigationRailDestination(
-                padding: EdgeInsets.symmetric(vertical: 16),
-                icon: Icon(Symbols.dashboard_rounded, fill: 0.0, size: 24),
-                selectedIcon: Icon(
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                icon: const Icon(
+                  Symbols.dashboard_rounded,
+                  fill: 0.0,
+                  size: 24,
+                ),
+                selectedIcon: const Icon(
                   Symbols.dashboard_rounded,
                   fill: 1.0,
                   size: 24,
                 ),
-                label: Text('Home'),
+                label: Text(l10n.home),
               ),
               NavigationRailDestination(
-                padding: EdgeInsets.symmetric(vertical: 16),
-                icon: Icon(Symbols.note_stack_add_rounded, fill: 0.0, size: 24),
-                selectedIcon: Icon(
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                icon: const Icon(
+                  Symbols.note_stack_add_rounded,
+                  fill: 0.0,
+                  size: 24,
+                ),
+                selectedIcon: const Icon(
                   Symbols.note_stack_add_rounded,
                   fill: 1.0,
                   size: 24,
                 ),
-                label: Text('Create'),
+                label: Text(l10n.create),
               ),
               NavigationRailDestination(
-                padding: EdgeInsets.symmetric(vertical: 16),
-                icon: Icon(Symbols.settings_rounded, fill: 0.0, size: 24),
-                selectedIcon: Icon(
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                icon: const Icon(Symbols.settings_rounded, fill: 0.0, size: 24),
+                selectedIcon: const Icon(
                   Symbols.settings_rounded,
                   fill: 1.0,
                   size: 24,
                 ),
-                label: Text('Settings'),
+                label: Text(l10n.settings),
               ),
             ],
             groupAlignment: 0.0,
