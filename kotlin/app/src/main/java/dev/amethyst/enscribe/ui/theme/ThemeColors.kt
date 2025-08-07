@@ -16,7 +16,7 @@ object ThemePalettes {
         accent = Color(0xFF9575CD),
         background = Color(0xFF000000),
         surface = Color(0xFF121212),
-        container = Color(0xFF1F1F1F),
+        container = Color(0xFF2B2B2B),
         text = Color(0xFFFFFFFF),
         error = Color(0xFFCF6679),
     )

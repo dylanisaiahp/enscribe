@@ -7,9 +7,11 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AddBox
 import androidx.compose.material.icons.outlined.Home
+import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.rounded.AddBox
 import androidx.compose.material.icons.rounded.Home
+import androidx.compose.material.icons.rounded.Notifications
 import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -47,6 +49,7 @@ fun NavBar(
             val items = listOf(
                 NavItem("Home", Icons.Outlined.Home, Icons.Rounded.Home),
                 NavItem("Create", Icons.Outlined.AddBox, Icons.Rounded.AddBox),
+                NavItem("Log", Icons.Outlined.Notifications, Icons.Rounded.Notifications),
                 NavItem("Settings", Icons.Outlined.Settings, Icons.Rounded.Settings),
             )
 
