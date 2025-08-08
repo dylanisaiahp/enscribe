@@ -167,12 +167,18 @@ fun HomePage(
                             placeholder = {
                                 Text(
                                     "Search entries…",
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    color = MaterialTheme.colorScheme.onSecondary
                                 )
                             },
                             maxLines = 1,
                             singleLine = true,
-                            leadingIcon = { Icon(Icons.Filled.Search, contentDescription = null) },
+                            leadingIcon = {
+                                Icon(
+                                    Icons.Filled.Search,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.onSecondary
+                                )
+                            },
                             trailingIcon = {
                                 Row(
                                     verticalAlignment = Alignment.CenterVertically
@@ -283,7 +289,7 @@ fun HomePage(
                             Text(
                                 if (searchQuery.text.isEmpty()) "You have no notes." else "No notes match your search.",
                                 style = MaterialTheme.typography.bodyMedium.copy(
-                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                                    color = MaterialTheme.colorScheme.onSecondary
                                 )
                             )
                         }

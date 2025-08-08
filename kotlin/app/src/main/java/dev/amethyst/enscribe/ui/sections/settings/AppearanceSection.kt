@@ -96,7 +96,7 @@ fun AppearanceSection(
                 )
                 Spacer(Modifier.width(12.dp))
                 Column(Modifier.weight(1f)) {
-                    Text("Theme", style = MaterialTheme.typography.bodyLarge)
+                    Text("Theme", style = MaterialTheme.typography.bodyLarge.copy(textColor))
                     Text(
                         "Choose your theme",
                         style = MaterialTheme.typography.bodySmall.copy(color = onSurface.copy(alpha = 0.6f))
