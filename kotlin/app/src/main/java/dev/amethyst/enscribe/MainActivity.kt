@@ -109,15 +109,14 @@ class MainActivity : ComponentActivity() {
                             1 -> CreatePage(Modifier.padding(paddingValues))
                             2 -> LogPage(Modifier.padding(paddingValues))
                             3 -> SettingsPage(
-                                modifier = Modifier.padding(paddingValues),
                                 selectedTheme = currentTheme,
                                 onThemeChanged = { currentTheme = it },
-                                //isGridView = isGridView,
-                                //showDateTime = showDateTime,
-                                //showCategory = showCategory,
-                                //onToggleView = { isGridView = it },
-                                //onToggleDateTime = { showDateTime = it },
-                                //onToggleCategory = { showCategory = it },
+                                isGridView = isGridView,
+                                showDateTime = showDateTime,
+                                showCategory = showCategory,
+                                onToggleView = { isGridView = it },
+                                onToggleDateTime = { showDateTime = it },
+                                onToggleCategory = { showCategory = it },
                             )
                         }
                     }
