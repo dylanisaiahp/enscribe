@@ -5,10 +5,10 @@ import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
@@ -26,11 +26,9 @@ import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.LightMode
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -41,8 +39,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import dev.amethyst.enscribe.ui.nav.NavBarPosition
 import dev.amethyst.enscribe.ui.theme.EnscribeTheme
 import dev.amethyst.enscribe.ui.theme.getThemeColors
 import dev.amethyst.enscribe.ui.theme.themeDescriptions
@@ -57,13 +55,9 @@ fun AppearanceSection(
     textColor: Color,
     titleStyle: TextStyle,
     isDark: Boolean,
-    selectedNavBarPosition: NavBarPosition,
-    onNavBarPositionChanged: (NavBarPosition) -> Unit
 ) {
     var expanded by remember { mutableStateOf(false) }
-    var navExpanded by remember { mutableStateOf(false) }
-
-    val navLabels = listOf("Top", "Bottom", "Left", "Right")
+    val interactionSource = remember { MutableInteractionSource() }
 
     Column(
         modifier = Modifier
@@ -87,7 +81,11 @@ fun AppearanceSection(
         ) {
             Row(
                 modifier = Modifier
-                    .clickable { expanded = !expanded }
+                    .clickable(
+                        interactionSource = interactionSource,
+                        indication = null,
+                        onClick = { expanded = !expanded }
+                    )
                     .padding(horizontal = 16.dp, vertical = 12.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -140,7 +138,11 @@ fun AppearanceSection(
                                         color = if (isSelected) accent else Color.Transparent,
                                         shape = RoundedCornerShape(12.dp)
                                     )
-                                    .clickable { onThemeChanged(theme) }
+                                    .clickable(
+                                        interactionSource = remember { MutableInteractionSource() },
+                                        indication = null,
+                                        onClick = { onThemeChanged(theme) }
+                                    )
                                     .padding(horizontal = 12.dp, vertical = 8.dp),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
@@ -155,7 +157,7 @@ fun AppearanceSection(
                                     Text(
                                         info.name,
                                         style = MaterialTheme.typography.bodyMedium.copy(
-                                            fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold,
+                                            fontWeight = FontWeight.SemiBold,
                                             color = textColor
                                         )
                                     )
@@ -168,73 +170,6 @@ fun AppearanceSection(
                                     )
                                 }
                             }
-                        }
-                    }
-                }
-            }
-        }
-
-        Spacer(Modifier.height(16.dp))
-
-        // === NAV BAR SECTION ===
-        Column(
-            modifier = Modifier
-                .clip(RoundedCornerShape(12.dp))
-        ) {
-            Row(
-                modifier = Modifier
-                    .clickable { navExpanded = !navExpanded }
-                    .padding(horizontal = 16.dp, vertical = 12.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(
-                    imageVector = Icons.Default.KeyboardArrowDown, // Replace with custom Nav icon
-                    contentDescription = null,
-                    tint = onSurface,
-                    modifier = Modifier.size(28.dp)
-                )
-                Spacer(Modifier.width(12.dp))
-                Column(Modifier.weight(1f)) {
-                    Text("Navigation Bar", style = MaterialTheme.typography.bodyLarge)
-                    Text(
-                        "Choose position",
-                        style = MaterialTheme.typography.bodySmall.copy(color = onSurface.copy(alpha = 0.6f))
-                    )
-                }
-                Icon(
-                    imageVector = if (navExpanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
-                    contentDescription = null,
-                    tint = onSurface
-                )
-            }
-
-            AnimatedVisibility(visible = navExpanded) {
-                Row(
-                    modifier = Modifier
-                        .padding(8.dp)
-                        .clip(RoundedCornerShape(16.dp))
-                        .background(
-                            Color(
-                                red = (background.red * 255 + 255 * 0.05f).toInt(),
-                                green = (background.green * 255 + 255 * 0.05f).toInt(),
-                                blue = (background.blue * 255 + 255 * 0.05f).toInt()
-                            )
-                        )
-                        .padding(8.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    NavBarPosition.entries.forEachIndexed { index, position ->
-                        val isSelected = selectedNavBarPosition == position
-                        TextButton(
-                            onClick = { onNavBarPositionChanged(position) },
-                            colors = ButtonDefaults.textButtonColors(
-                                containerColor = if (isSelected) accent else Color.Transparent,
-                                contentColor = if (isSelected) textColor else textColor.copy(alpha = 0.5f)
-                            ),
-                            shape = RoundedCornerShape(12.dp),
-                            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
-                        ) {
-                            Text(navLabels[index])
                         }
                     }
                 }

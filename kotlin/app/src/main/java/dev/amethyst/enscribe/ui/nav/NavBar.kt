@@ -17,29 +17,18 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
-import androidx.compose.material3.NavigationRail
-import androidx.compose.material3.NavigationRailItem
-import androidx.compose.material3.NavigationRailItemDefaults
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
-
-enum class NavBarPosition {
-    Top,
-    Bottom,
-    Left,
-    Right
-}
 
 @Composable
 fun NavBar(
     selectedIndex: Int,
     onItemSelected: (Int) -> Unit,
-    navBarPosition: NavBarPosition = NavBarPosition.Bottom,
     accentColor: Color = MaterialTheme.colorScheme.tertiary
 ) {
     data class NavItem(
@@ -55,157 +44,38 @@ fun NavBar(
         NavItem("Settings", Icons.Outlined.Settings, Icons.Rounded.Settings),
     )
 
-    when (navBarPosition) {
-        NavBarPosition.Top -> {
-            NavigationBar(
-                containerColor = MaterialTheme.colorScheme.secondary,
-            ) {
-                items.forEachIndexed { index, item ->
-                    NavigationBarItem(
-                        icon = {
-                            Icon(
-                                imageVector = if (selectedIndex == index) item.iconRounded else item.iconOutlined,
-                                contentDescription = item.label,
-                                modifier = Modifier.size(28.dp),
-                            )
-                        },
-                        label = {
-                            if (selectedIndex == index)
-                                Text(
-                                    item.label,
-                                    modifier = Modifier.offset(0.dp, (-8).dp)
-                                )
-                            else null
-                        },
-                        selected = selectedIndex == index,
-                        onClick = { onItemSelected(index) },
-                        alwaysShowLabel = false,
-                        colors = NavigationBarItemDefaults.colors(
-                            selectedIconColor = accentColor,
-                            unselectedIconColor = MaterialTheme.colorScheme.onSecondary,
-                            selectedTextColor = accentColor,
-                            unselectedTextColor = MaterialTheme.colorScheme.onSecondary,
-                            indicatorColor = Color.Transparent
-                        )
+    NavigationBar(
+        modifier = Modifier.clip(RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp)),
+        containerColor = MaterialTheme.colorScheme.secondary,
+    ) {
+        items.forEachIndexed { index, item ->
+            NavigationBarItem(
+                icon = {
+                    Icon(
+                        imageVector = if (selectedIndex == index) item.iconRounded else item.iconOutlined,
+                        contentDescription = item.label,
+                        modifier = Modifier.size(28.dp),
                     )
-                }
-            }
-        }
-
-        NavBarPosition.Bottom -> {
-            NavigationBar(
-                containerColor = MaterialTheme.colorScheme.secondary,
-            ) {
-                items.forEachIndexed { index, item ->
-                    NavigationBarItem(
-                        icon = {
-                            Icon(
-                                imageVector = if (selectedIndex == index) item.iconRounded else item.iconOutlined,
-                                contentDescription = item.label,
-                                modifier = Modifier.size(28.dp),
-                            )
-                        },
-                        label = {
-                            if (selectedIndex == index)
-                                Text(
-                                    item.label,
-                                    modifier = Modifier.offset(0.dp, (-8).dp)
-                                )
-                            else null
-                        },
-                        selected = selectedIndex == index,
-                        onClick = { onItemSelected(index) },
-                        alwaysShowLabel = false,
-                        colors = NavigationBarItemDefaults.colors(
-                            selectedIconColor = accentColor,
-                            unselectedIconColor = MaterialTheme.colorScheme.onSecondary,
-                            selectedTextColor = accentColor,
-                            unselectedTextColor = MaterialTheme.colorScheme.onSecondary,
-                            indicatorColor = Color.Transparent
+                },
+                label = {
+                    if (selectedIndex == index)
+                        Text(
+                            item.label,
+                            modifier = Modifier.offset(0.dp, (-8).dp)
                         )
-                    )
-                }
-            }
-        }
-
-        NavBarPosition.Left -> {
-            Surface(
-                shape = RoundedCornerShape(topEnd = 32.dp, bottomEnd = 32.dp),
-            ) {
-                NavigationRail(
-                    containerColor = MaterialTheme.colorScheme.secondary,
-                ) {
-                    items.forEachIndexed { index, item ->
-                        NavigationRailItem(
-                            icon = {
-                                Icon(
-                                    imageVector = if (selectedIndex == index) item.iconRounded else item.iconOutlined,
-                                    contentDescription = item.label,
-                                    modifier = Modifier.size(28.dp),
-                                )
-                            },
-                            label = {
-                                if (selectedIndex == index)
-                                    Text(
-                                        item.label,
-                                        modifier = Modifier.offset(0.dp, (-8).dp)
-                                    )
-                                else null
-                            },
-                            selected = selectedIndex == index,
-                            onClick = { onItemSelected(index) },
-                            alwaysShowLabel = false,
-                            colors = NavigationRailItemDefaults.colors(
-                                selectedIconColor = accentColor,
-                                unselectedIconColor = MaterialTheme.colorScheme.onSecondary,
-                                selectedTextColor = accentColor,
-                                unselectedTextColor = MaterialTheme.colorScheme.onSecondary,
-                                indicatorColor = Color.Transparent
-                            )
-                        )
-                    }
-                }
-            }
-        }
-
-        NavBarPosition.Right -> {
-            Surface(
-                shape = RoundedCornerShape(topStart = 32.dp, bottomStart = 32.dp),
-            ) {
-                NavigationRail(
-                    containerColor = MaterialTheme.colorScheme.secondary,
-                ) {
-                    items.forEachIndexed { index, item ->
-                        NavigationRailItem(
-                            icon = {
-                                Icon(
-                                    imageVector = if (selectedIndex == index) item.iconRounded else item.iconOutlined,
-                                    contentDescription = item.label,
-                                    modifier = Modifier.size(28.dp),
-                                )
-                            },
-                            label = {
-                                if (selectedIndex == index)
-                                    Text(
-                                        item.label,
-                                        modifier = Modifier.offset(0.dp, (-8).dp)
-                                    )
-                                else null
-                            },
-                            selected = selectedIndex == index,
-                            onClick = { onItemSelected(index) },
-                            alwaysShowLabel = false,
-                            colors = NavigationRailItemDefaults.colors(
-                                selectedIconColor = accentColor,
-                                unselectedIconColor = MaterialTheme.colorScheme.onSecondary,
-                                selectedTextColor = accentColor,
-                                unselectedTextColor = MaterialTheme.colorScheme.onSecondary,
-                                indicatorColor = Color.Transparent
-                            )
-                        )
-                    }
-                }
-            }
+                    else null
+                },
+                selected = selectedIndex == index,
+                onClick = { onItemSelected(index) },
+                alwaysShowLabel = false,
+                colors = NavigationBarItemDefaults.colors(
+                    selectedIconColor = accentColor,
+                    unselectedIconColor = MaterialTheme.colorScheme.onSecondary,
+                    selectedTextColor = accentColor,
+                    unselectedTextColor = MaterialTheme.colorScheme.onSecondary,
+                    indicatorColor = Color.Transparent
+                )
+            )
         }
     }
 }

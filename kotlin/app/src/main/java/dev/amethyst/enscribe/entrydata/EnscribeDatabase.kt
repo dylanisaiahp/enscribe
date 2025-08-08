@@ -11,15 +11,13 @@ import androidx.room.Query
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
-import dev.amethyst.enscribe.ui.nav.NavBarPosition
 
 /**
  * Entity for app-wide settings
  */
 @Entity(tableName = "settings")
 data class SettingsEntity(
-    @PrimaryKey val id: Int = 0,
-    val navBarPosition: NavBarPosition = NavBarPosition.Bottom
+    @PrimaryKey val id: Int = 0
 )
 
 @Dao
@@ -42,7 +40,7 @@ interface SettingsDao {
         Entry.Prayer::class,
         SettingsEntity::class
     ],
-    version = 2, // Incremented since we added a table
+    version = 3,
     exportSchema = true,
 )
 @TypeConverters(EntryConverters::class)
