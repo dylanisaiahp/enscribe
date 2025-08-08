@@ -298,7 +298,7 @@ fun HomePage(
                                     verticalArrangement = Arrangement.spacedBy(8.dp)
                                 ) {
                                     items(displayedEntries, key = { it.id }) { note ->
-                                        EntryCardDartView(note, showCategory, showDateTime)
+                                        EntryCard(note, showCategory, showDateTime)
                                     }
                                 }
                             } else {
@@ -308,7 +308,7 @@ fun HomePage(
                                     verticalArrangement = Arrangement.spacedBy(8.dp)
                                 ) {
                                     items(displayedEntries, key = { it.id }) { note ->
-                                        EntryCardDartView(note, showCategory, showDateTime)
+                                        EntryCard(note, showCategory, showDateTime)
                                     }
                                 }
                             }
@@ -321,7 +321,7 @@ fun HomePage(
 }
 
 @Composable
-fun EntryCardDartView(note: Entry.Note, showCategory: Boolean, showDateTime: Boolean) {
+fun EntryCard(note: Entry.Note, showCategory: Boolean, showDateTime: Boolean) {
     Card(
         modifier = Modifier
             .fillMaxWidth()

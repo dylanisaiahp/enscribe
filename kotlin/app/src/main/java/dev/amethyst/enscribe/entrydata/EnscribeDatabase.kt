@@ -3,15 +3,36 @@ package dev.amethyst.enscribe.entrydata
 import android.content.Context
 import androidx.room.Dao
 import androidx.room.Database
+import androidx.room.Entity
 import androidx.room.Insert
+import androidx.room.OnConflictStrategy
+import androidx.room.PrimaryKey
 import androidx.room.Query
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
+import dev.amethyst.enscribe.ui.nav.NavBarPosition
 
 /**
- * Room database for entries: Note, Task, Verse, Prayer.
- * Registers the Reminder converter via EntryReminders.
+ * Entity for app-wide settings
+ */
+@Entity(tableName = "settings")
+data class SettingsEntity(
+    @PrimaryKey val id: Int = 0,
+    val navBarPosition: NavBarPosition = NavBarPosition.Bottom
+)
+
+@Dao
+interface SettingsDao {
+    @Query("SELECT * FROM settings WHERE id = 0")
+    suspend fun getSettings(): SettingsEntity?
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun saveSettings(settings: SettingsEntity)
+}
+
+/**
+ * Room database for entries: Note, Task, Verse, Prayer, plus Settings.
  */
 @Database(
     entities = [
@@ -19,19 +40,18 @@ import androidx.room.TypeConverters
         Entry.Task::class,
         Entry.Verse::class,
         Entry.Prayer::class,
+        SettingsEntity::class
     ],
-    version = 1,
+    version = 2, // Incremented since we added a table
     exportSchema = true,
 )
 @TypeConverters(EntryConverters::class)
 abstract class EnscribeDatabase : RoomDatabase() {
     abstract fun noteDao(): NoteDao
-
     abstract fun taskDao(): TaskDao
-
     abstract fun verseDao(): VerseDao
-
     abstract fun prayerDao(): PrayerDao
+    abstract fun settingsDao(): SettingsDao
 
     companion object {
         @Volatile
@@ -44,15 +64,16 @@ abstract class EnscribeDatabase : RoomDatabase() {
                         context.applicationContext,
                         EnscribeDatabase::class.java,
                         "enscribe.db",
-                    ).build()
+                    )
+                    .fallbackToDestructiveMigration(true) // Remove in production, use migration
+                    .build()
                     .also { INSTANCE = it }
             }
     }
 }
 
 /**
- * DAO interfaces declared here for quick access.
- * Feel free to move each into its own file when you scale.
+ * DAO interfaces for entries.
  */
 @Dao
 interface NoteDao {

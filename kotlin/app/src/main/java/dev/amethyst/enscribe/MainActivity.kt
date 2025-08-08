@@ -26,6 +26,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import dev.amethyst.enscribe.entrydata.EnscribeDatabase
 import dev.amethyst.enscribe.ui.nav.NavBar
+import dev.amethyst.enscribe.ui.nav.NavBarPosition
 import dev.amethyst.enscribe.ui.pages.CreatePage
 import dev.amethyst.enscribe.ui.pages.HomePage
 import dev.amethyst.enscribe.ui.pages.LogPage
@@ -49,20 +50,35 @@ class MainActivity : ComponentActivity() {
             var showCategory by rememberSaveable { mutableStateOf(true) }
             var showDateTime by rememberSaveable { mutableStateOf(true) }
 
-            val currentTheme = ThemeEnum.Onyx
+            var currentTheme by rememberSaveable { mutableStateOf(ThemeEnum.Onyx) }
             val isDarkTheme = true
+
+            var navBarPosition by rememberSaveable { mutableStateOf(NavBarPosition.Bottom) }
 
             EnscribeTheme(theme = currentTheme, isDarkTheme = isDarkTheme) {
                 Scaffold(
                     containerColor = MaterialTheme.colorScheme.primary,
                     bottomBar = {
-                        NavBar(
-                            selectedIndex = selectedPage,
-                            onItemSelected = {
-                                previousPage = selectedPage
-                                selectedPage = it
-                            }
-                        )
+                        if (navBarPosition == NavBarPosition.Bottom) {
+                            NavBar(
+                                selectedIndex = selectedPage,
+                                onItemSelected = {
+                                    previousPage = selectedPage
+                                    selectedPage = it
+                                }
+                            )
+                        }
+                    },
+                    topBar = {
+                        if (navBarPosition == NavBarPosition.Top) {
+                            NavBar(
+                                selectedIndex = selectedPage,
+                                onItemSelected = {
+                                    previousPage = selectedPage
+                                    selectedPage = it
+                                }
+                            )
+                        }
                     }
                 ) { paddingValues ->
                     AnimatedContent(
@@ -105,9 +121,22 @@ class MainActivity : ComponentActivity() {
                                 showDateTime = showDateTime,
                                 theme = currentTheme
                             )
+
                             1 -> CreatePage(Modifier.padding(paddingValues))
                             2 -> LogPage(Modifier.padding(paddingValues))
-                            3 -> SettingsPage(Modifier.padding(paddingValues))
+                            3 -> SettingsPage(
+                                modifier = Modifier.padding(paddingValues),
+                                selectedTheme = currentTheme,
+                                onThemeChanged = { currentTheme = it },
+                                //isGridView = isGridView,
+                                //showDateTime = showDateTime,
+                                //showCategory = showCategory,
+                                //onToggleView = { isGridView = it },
+                                //onToggleDateTime = { showDateTime = it },
+                                //onToggleCategory = { showCategory = it },
+                                selectedNavBarPosition = navBarPosition,
+                                onNavBarPositionChanged = { navBarPosition = it }
+                            )
                         }
                     }
                 }
@@ -115,4 +144,3 @@ class MainActivity : ComponentActivity() {
         }
     }
 }
-
