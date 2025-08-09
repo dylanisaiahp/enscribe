@@ -68,4 +68,7 @@ dependencies {
     ksp(libs.androidx.room.compiler)
     implementation(libs.androidx.material.icons.extended)
     implementation(libs.okhttp)
+    implementation(libs.androidx.ui)
+    implementation(libs.ui.tooling)
+    implementation(libs.ui.graphics)
 }

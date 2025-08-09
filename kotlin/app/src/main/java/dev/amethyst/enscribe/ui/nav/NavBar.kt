@@ -5,11 +5,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AddBox
-import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.rounded.AddBox
-import androidx.compose.material.icons.rounded.Home
 import androidx.compose.material.icons.rounded.Notifications
 import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material3.Icon
@@ -23,7 +21,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
+import dev.amethyst.enscribe.R
 
 @Composable
 fun NavBar(
@@ -37,8 +37,11 @@ fun NavBar(
         val iconRounded: ImageVector
     )
 
+    val homeOutlinedVector = vectorResourceAsImageVector(resId = R.drawable.ic_home_outlined)
+    val homeFilledVector = vectorResourceAsImageVector(resId = R.drawable.ic_home_filled)
+
     val items = listOf(
-        NavItem("Home", Icons.Outlined.Home, Icons.Rounded.Home),
+        NavItem("Home", homeOutlinedVector, homeFilledVector),
         NavItem("Create", Icons.Outlined.AddBox, Icons.Rounded.AddBox),
         NavItem("Log", Icons.Outlined.Notifications, Icons.Rounded.Notifications),
         NavItem("Settings", Icons.Outlined.Settings, Icons.Rounded.Settings),
@@ -78,4 +81,9 @@ fun NavBar(
             )
         }
     }
+}
+
+@Composable
+fun vectorResourceAsImageVector(resId: Int): ImageVector {
+    return ImageVector.vectorResource(id = resId)
 }

@@ -36,6 +36,8 @@ androidx-material3 = { group = "androidx.compose.material3", name = "material3" 
 androidx-runtime-saveable = { group = "androidx.compose.runtime", name = "runtime-saveable", version.ref = "runtimeSaveable" }
 okhttp = { module = "com.squareup.okhttp3:okhttp", version.ref = "okhttp" }
 androidx-foundation = { group = "androidx.compose.foundation", name = "foundation", version.ref = "foundation" }
+ui-graphics = { module = "androidx.compose.ui:ui-graphics" }
+ui-tooling = { module = "androidx.compose.ui:ui-tooling" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

@@ -11,19 +11,25 @@ import androidx.room.Query
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
+import kotlinx.coroutines.flow.Flow
 
 /**
  * Entity for app-wide settings
  */
 @Entity(tableName = "settings")
 data class SettingsEntity(
-    @PrimaryKey val id: Int = 0
+    @PrimaryKey val id: Int = 0,
+    val themeName: String = "Onyx",
+    val isGridView: Boolean = true,
+    val showCategory: Boolean = true,
+    val showDateTime: Boolean = true,
 )
 
 @Dao
 interface SettingsDao {
+    // Change the return type to Flow<SettingsEntity>
     @Query("SELECT * FROM settings WHERE id = 0")
-    suspend fun getSettings(): SettingsEntity?
+    fun getSettings(): Flow<SettingsEntity?>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun saveSettings(settings: SettingsEntity)
@@ -40,10 +46,10 @@ interface SettingsDao {
         Entry.Prayer::class,
         SettingsEntity::class
     ],
-    version = 3,
+    version = 5,
     exportSchema = true,
 )
-@TypeConverters(EntryConverters::class)
+@TypeConverters(EntryConverters::class, SettingsConverters::class)
 abstract class EnscribeDatabase : RoomDatabase() {
     abstract fun noteDao(): NoteDao
     abstract fun taskDao(): TaskDao

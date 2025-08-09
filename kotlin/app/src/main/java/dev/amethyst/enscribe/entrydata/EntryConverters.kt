@@ -1,6 +1,7 @@
 package dev.amethyst.enscribe.entrydata
 
 import androidx.room.TypeConverter
+import dev.amethyst.enscribe.ui.theme.EnscribeTheme
 
 /**
  * Encapsulates reminder details for an entry.
@@ -20,6 +21,18 @@ enum class RepeatType {
     DAILY,
     WEEKLY,
     CUSTOM,
+}
+
+object SettingsConverters {
+    @TypeConverter
+    fun fromEnscribeTheme(theme: EnscribeTheme): String {
+        return theme.name
+    }
+
+    @TypeConverter
+    fun toEnscribeTheme(themeName: String): EnscribeTheme {
+        return EnscribeTheme.valueOf(themeName)
+    }
 }
 
 /**

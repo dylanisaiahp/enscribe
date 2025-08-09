@@ -6,17 +6,17 @@ import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 
-enum class EnscribeTheme {
-    Onyx,
-    Midnight,
-    Burgundy,
-    Graphene,
-    Lumen,
-    Beige,
-    Amethyst,
-    Lavender,
-    Aqua,
-    Mint,
+enum class EnscribeTheme(val isDark: Boolean) {
+    Onyx(isDark = true),
+    Midnight(isDark = true),
+    Burgundy(isDark = true),
+    Graphene(isDark = true),
+    Lumen(isDark = false),
+    Beige(isDark = false),
+    Amethyst(isDark = true),
+    Lavender(isDark = false),
+    Aqua(isDark = false),
+    Mint(isDark = false),
 }
 
 data class EnscribeThemeInfo(val name: String, val description: String)
@@ -79,11 +79,10 @@ fun ThemeColors.toColorScheme(isDark: Boolean): ColorScheme {
 @Composable
 fun EnscribeTheme(
     theme: EnscribeTheme,
-    isDarkTheme: Boolean = false,
     content: @Composable () -> Unit
 ) {
     val colors = getThemeColors(theme)
-    val colorScheme = colors.toColorScheme(isDarkTheme)
+    val colorScheme = colors.toColorScheme(theme.isDark)
 
     MaterialTheme(
         colorScheme = colorScheme,

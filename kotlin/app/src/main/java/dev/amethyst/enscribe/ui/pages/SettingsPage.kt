@@ -59,7 +59,7 @@ fun SettingsPage(
                     background = background,
                     textColor = textColor,
                     titleStyle = titleStyle,
-                    isDark = true,
+                    isDark = selectedTheme.isDark,
                 )
             }
             item { Spacer(modifier = Modifier.height(16.dp)) }

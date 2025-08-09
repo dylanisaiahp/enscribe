@@ -16,22 +16,24 @@ import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import dev.amethyst.enscribe.entrydata.EnscribeDatabase
+import dev.amethyst.enscribe.entrydata.SettingsEntity
 import dev.amethyst.enscribe.ui.nav.NavBar
 import dev.amethyst.enscribe.ui.pages.CreatePage
 import dev.amethyst.enscribe.ui.pages.HomePage
 import dev.amethyst.enscribe.ui.pages.LogPage
 import dev.amethyst.enscribe.ui.pages.SettingsPage
 import dev.amethyst.enscribe.ui.theme.EnscribeTheme
-import dev.amethyst.enscribe.ui.theme.EnscribeTheme as ThemeEnum
+import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
     @OptIn(ExperimentalAnimationApi::class)
@@ -45,14 +47,16 @@ class MainActivity : ComponentActivity() {
 
             val context = LocalContext.current
             val enscribeDatabase = remember { EnscribeDatabase.getInstance(context) }
-            var isGridView by rememberSaveable { mutableStateOf(true) }
-            var showCategory by rememberSaveable { mutableStateOf(true) }
-            var showDateTime by rememberSaveable { mutableStateOf(true) }
+            val settingsDao = remember { enscribeDatabase.settingsDao() }
 
-            var currentTheme by rememberSaveable { mutableStateOf(ThemeEnum.Onyx) }
-            val isDarkTheme = true
+            val settings by settingsDao.getSettings().collectAsState(
+                initial = SettingsEntity()
+            )
+            val coroutineScope = rememberCoroutineScope()
 
-            EnscribeTheme(theme = currentTheme, isDarkTheme = isDarkTheme) {
+            val currentTheme = EnscribeTheme.valueOf(settings?.themeName ?: "Onyx")
+
+            EnscribeTheme(theme = currentTheme) {
                 Scaffold(
                     containerColor = MaterialTheme.colorScheme.primary,
                     bottomBar = {
@@ -100,9 +104,9 @@ class MainActivity : ComponentActivity() {
                             0 -> HomePage(
                                 modifier = Modifier.padding(paddingValues),
                                 enscribeDatabase = enscribeDatabase,
-                                isGridView = isGridView,
-                                showCategory = showCategory,
-                                showDateTime = showDateTime,
+                                isGridView = settings?.isGridView ?: true,
+                                showCategory = settings?.showCategory ?: true,
+                                showDateTime = settings?.showDateTime ?: true,
                                 theme = currentTheme
                             )
 
@@ -110,13 +114,33 @@ class MainActivity : ComponentActivity() {
                             2 -> LogPage(Modifier.padding(paddingValues))
                             3 -> SettingsPage(
                                 selectedTheme = currentTheme,
-                                onThemeChanged = { currentTheme = it },
-                                isGridView = isGridView,
-                                showDateTime = showDateTime,
-                                showCategory = showCategory,
-                                onToggleView = { isGridView = it },
-                                onToggleDateTime = { showDateTime = it },
-                                onToggleCategory = { showCategory = it },
+                                onThemeChanged = { newTheme ->
+                                    coroutineScope.launch {
+                                        val currentSettings = settings ?: SettingsEntity()
+                                        settingsDao.saveSettings(currentSettings.copy(themeName = newTheme.name))
+                                    }
+                                },
+                                isGridView = settings?.isGridView ?: true,
+                                showDateTime = settings?.showDateTime ?: true,
+                                showCategory = settings?.showCategory ?: true,
+                                onToggleView = { isGridView ->
+                                    coroutineScope.launch {
+                                        val currentSettings = settings ?: SettingsEntity()
+                                        settingsDao.saveSettings(currentSettings.copy(isGridView = isGridView))
+                                    }
+                                },
+                                onToggleDateTime = { showDateTime ->
+                                    coroutineScope.launch {
+                                        val currentSettings = settings ?: SettingsEntity()
+                                        settingsDao.saveSettings(currentSettings.copy(showDateTime = showDateTime))
+                                    }
+                                },
+                                onToggleCategory = { showCategory ->
+                                    coroutineScope.launch {
+                                        val currentSettings = settings ?: SettingsEntity()
+                                        settingsDao.saveSettings(currentSettings.copy(showCategory = showCategory))
+                                    }
+                                },
                             )
                         }
                     }
