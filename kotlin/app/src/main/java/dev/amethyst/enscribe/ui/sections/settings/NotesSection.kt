@@ -122,7 +122,7 @@ private fun SwitchListRow(
         supportingContent = {
             Text(
                 subtitle,
-                style = MaterialTheme.typography.bodySmall.copy(color = onSurface.copy(alpha = 0.6f))
+                style = MaterialTheme.typography.bodySmall.copy(color = textColor.copy(alpha = 0.6f))
             )
         },
         leadingContent = {

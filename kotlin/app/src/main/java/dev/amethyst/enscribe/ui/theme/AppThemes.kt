@@ -11,9 +11,9 @@ enum class EnscribeTheme(val isDark: Boolean) {
     Midnight(isDark = true),
     Burgundy(isDark = true),
     Graphene(isDark = true),
+    Amethyst(isDark = true),
     Lumen(isDark = false),
     Beige(isDark = false),
-    Amethyst(isDark = true),
     Lavender(isDark = false),
     Aqua(isDark = false),
     Mint(isDark = false),
@@ -26,9 +26,9 @@ val themeDescriptions = mapOf(
     EnscribeTheme.Midnight to EnscribeThemeInfo("Midnight", "Dark theme with cool blue tones."),
     EnscribeTheme.Burgundy to EnscribeThemeInfo("Burgundy", "Rich dark theme with deep reds."),
     EnscribeTheme.Graphene to EnscribeThemeInfo("Graphene", "Soft, modern graphite tones."),
+    EnscribeTheme.Amethyst to EnscribeThemeInfo("Amethyst", "Dark theme with subtle purple."),
     EnscribeTheme.Lumen to EnscribeThemeInfo("Lumen", "Bright, clean light theme."),
     EnscribeTheme.Beige to EnscribeThemeInfo("Beige", "Warm and cozy light hues."),
-    EnscribeTheme.Amethyst to EnscribeThemeInfo("Amethyst", "Dark theme with subtle purple."),
     EnscribeTheme.Lavender to EnscribeThemeInfo("Lavender", "Airy light with purple accents."),
     EnscribeTheme.Aqua to EnscribeThemeInfo("Aqua", "Refreshing light water-inspired."),
     EnscribeTheme.Mint to EnscribeThemeInfo("Mint", "Crisp, cool light theme.")
@@ -39,9 +39,9 @@ fun getThemeColors(theme: EnscribeTheme): ThemeColors = when (theme) {
     EnscribeTheme.Midnight -> ThemePalettes.midnight
     EnscribeTheme.Burgundy -> ThemePalettes.burgundy
     EnscribeTheme.Graphene -> ThemePalettes.graphene
+    EnscribeTheme.Amethyst -> ThemePalettes.amethyst
     EnscribeTheme.Lumen -> ThemePalettes.lumen
     EnscribeTheme.Beige -> ThemePalettes.beige
-    EnscribeTheme.Amethyst -> ThemePalettes.amethyst
     EnscribeTheme.Lavender -> ThemePalettes.lavender
     EnscribeTheme.Aqua -> ThemePalettes.aqua
     EnscribeTheme.Mint -> ThemePalettes.mint

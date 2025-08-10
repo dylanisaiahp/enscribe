@@ -60,6 +60,7 @@ class MainActivity : ComponentActivity() {
                 Scaffold(
                     containerColor = MaterialTheme.colorScheme.primary,
                     bottomBar = {
+                        // The NavBar can now be simplified as it doesn't need to handle the internal state of CreatePage
                         NavBar(
                             selectedIndex = selectedPage,
                             onItemSelected = {
@@ -109,8 +110,15 @@ class MainActivity : ComponentActivity() {
                                 showDateTime = settings?.showDateTime ?: true,
                                 theme = currentTheme
                             )
+                            // This is the only change to MainActivity. It now just calls CreatePage.
+                            1 -> CreatePage(
+                                accent = MaterialTheme.colorScheme.tertiary,
+                                background = MaterialTheme.colorScheme.secondary,
+                                textColor = MaterialTheme.colorScheme.onBackground,
+                                titleStyle = MaterialTheme.typography.headlineLarge,
+                                modifier = Modifier.padding(paddingValues)
+                            )
 
-                            1 -> CreatePage(Modifier.padding(paddingValues))
                             2 -> LogPage(Modifier.padding(paddingValues))
                             3 -> SettingsPage(
                                 selectedTheme = currentTheme,

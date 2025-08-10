@@ -36,8 +36,7 @@ fun SettingsPage(
     val titleStyle = theme.typography.titleLarge
     val background = theme.colorScheme.secondary
     val accent = theme.colorScheme.tertiary
-    val onSurface = theme.colorScheme.onSurface
-    val textColor = theme.colorScheme.onSurfaceVariant
+    val textColor = theme.colorScheme.onSurface
     val onSecondary = theme.colorScheme.onSecondary
 
     Scaffold(
@@ -47,14 +46,14 @@ fun SettingsPage(
             modifier = Modifier
                 .windowInsetsPadding(WindowInsets.systemBars)
                 .padding(horizontal = 20.dp)
-                .padding(bottom = innerPadding.calculateBottomPadding() + 64.dp)
+                .padding(bottom = innerPadding.calculateBottomPadding() + 52.dp, top = 16.dp)
                 .fillMaxSize()
         ) {
             item {
                 AppearanceSection(
                     selectedTheme = selectedTheme,
                     onThemeChanged = onThemeChanged,
-                    onSurface = onSurface,
+                    onSurface = textColor,
                     accent = accent,
                     background = background,
                     textColor = textColor,
@@ -71,7 +70,7 @@ fun SettingsPage(
                     onToggleView = onToggleView,
                     onToggleDateTime = onToggleDateTime,
                     onToggleCategory = onToggleCategory,
-                    onSurface = onSurface,
+                    onSurface = textColor,
                     accent = accent,
                     background = background,
                     textColor = textColor,
@@ -82,7 +81,7 @@ fun SettingsPage(
             item { Spacer(modifier = Modifier.height(16.dp)) }
             item {
                 AboutSection(
-                    onSurface = onSurface,
+                    onSurface = textColor,
                     accent = accent,
                     background = background,
                     textColor = textColor,

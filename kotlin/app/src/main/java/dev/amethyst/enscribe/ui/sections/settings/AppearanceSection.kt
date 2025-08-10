@@ -99,7 +99,7 @@ fun AppearanceSection(
                     Text("Theme", style = MaterialTheme.typography.bodyLarge.copy(textColor))
                     Text(
                         "Choose your theme",
-                        style = MaterialTheme.typography.bodySmall.copy(color = onSurface.copy(alpha = 0.6f))
+                        style = MaterialTheme.typography.bodySmall.copy(color = textColor.copy(alpha = 0.6f))
                     )
                 }
                 Icon(
@@ -164,7 +164,7 @@ fun AppearanceSection(
                                     Text(
                                         info.description,
                                         style = MaterialTheme.typography.bodySmall.copy(
-                                            color = onSurface.copy(alpha = 0.6f)
+                                            color = textColor.copy(alpha = 0.6f)
                                         ),
                                         maxLines = 2
                                     )

@@ -144,6 +144,7 @@ fun HomePage(
         val focusManager = LocalFocusManager.current
         Scaffold(
             containerColor = Color.Transparent,
+            modifier = Modifier.padding(top = 16.dp),
             topBar = {
                 Box(
                     modifier = Modifier

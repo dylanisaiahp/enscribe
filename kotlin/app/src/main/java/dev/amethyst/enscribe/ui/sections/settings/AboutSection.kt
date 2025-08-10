@@ -9,9 +9,7 @@ import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -107,7 +105,10 @@ fun AboutSection(
                 },
                 supportingContent = {
                     if (showDescriptionSubtitle) {
-                        Text("Enscribe notes, tasks, and scripture.", color = textColor)
+                        Text(
+                            "Enscribe notes, tasks, and scripture.",
+                            color = textColor.copy(alpha = 0.6f)
+                        )
                     }
                 },
                 modifier = Modifier
@@ -137,7 +138,7 @@ fun AboutSection(
                 supportingContent = {
                     if (showVersionSubtitle) {
                         if (appVersion != null) {
-                            Text(appVersion!!, color = textColor)
+                            Text(appVersion!!, color = textColor.copy(alpha = 0.6f))
                         } else {
                             CircularProgressIndicator(
                                 modifier = Modifier.size(24.dp),
@@ -208,9 +209,6 @@ fun AboutSection(
                     containerColor = background
                 ),
             )
-
-
-            Spacer(modifier = Modifier.height(8.dp))
         }
     }
 }
