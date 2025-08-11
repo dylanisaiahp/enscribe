@@ -1,7 +1,6 @@
-package dev.amethyst.enscribe
+package dev.amethyst.enscribe.data
 
 import android.content.Context
-import androidx.room.AutoMigration
 import androidx.room.Dao
 import androidx.room.Database
 import androidx.room.Entity
@@ -14,12 +13,10 @@ import androidx.room.RoomDatabase
 import androidx.room.Transaction
 import androidx.room.TypeConverters
 import com.google.gson.Gson
-import dev.amethyst.enscribe.entrydata.Entry.Note
-import dev.amethyst.enscribe.entrydata.Entry.Prayer
-import dev.amethyst.enscribe.entrydata.Entry.Task
-import dev.amethyst.enscribe.entrydata.Entry.Verse
-import dev.amethyst.enscribe.entrydata.EntryConverters
-import dev.amethyst.enscribe.entrydata.SettingsConverters
+import dev.amethyst.enscribe.data.Entry.Note
+import dev.amethyst.enscribe.data.Entry.Prayer
+import dev.amethyst.enscribe.data.Entry.Task
+import dev.amethyst.enscribe.data.Entry.Verse
 import kotlinx.coroutines.flow.Flow
 
 /**
@@ -64,11 +61,11 @@ interface SettingsDao {
         Prayer::class,
         SettingsEntity::class
     ],
-    version = 9,
+    version = 1,
     exportSchema = true,
-    autoMigrations = [
-        AutoMigration(from = 8, to = 9)
-    ]
+//    autoMigrations = [
+//        AutoMigration(from = 1, to = 2)
+//    ]
 )
 @TypeConverters(EntryConverters::class, SettingsConverters::class)
 abstract class EnscribeDatabase : RoomDatabase() {
@@ -90,6 +87,7 @@ abstract class EnscribeDatabase : RoomDatabase() {
                         EnscribeDatabase::class.java,
                         "enscribe.db",
                     )
+                    .fallbackToDestructiveMigration(true)
                     .build()
                     .also { INSTANCE = it }
             }

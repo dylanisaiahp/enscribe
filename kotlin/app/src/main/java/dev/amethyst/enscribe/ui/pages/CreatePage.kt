@@ -24,10 +24,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -36,114 +33,94 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import dev.amethyst.enscribe.ui.components.create.NoteEditor
-import dev.amethyst.enscribe.ui.components.create.PrayerEditor
-import dev.amethyst.enscribe.ui.components.create.TaskEditor
-import dev.amethyst.enscribe.ui.components.create.VerseEditor
 
-// Define an enum to track which editor is active.
-enum class EditorType {
-    NONE, NOTE, TASK, VERSE, PRAYER
-}
+// Import our shared EntryType enum.
+import dev.amethyst.enscribe.data.EntryType
 
+/**
+ * The CreatePage, a simple menu for selecting an entry type.
+ *
+ * This Composable's only responsibility is to display the buttons
+ * and to notify its parent when a button is clicked. It does not
+ * manage its own state or perform navigation directly.
+ *
+ * @param accent The accent color for UI elements.
+ * @param background The background color for buttons.
+ * @param textColor The text color for buttons.
+ * @param titleStyle The text style for the page title.
+ * @param onEntrySelected A function that is called with the selected
+ * [EntryType] when a button is clicked.
+ */
 @Composable
 fun CreatePage(
     accent: Color,
     background: Color,
     textColor: Color,
     titleStyle: TextStyle,
+    onEntrySelected: (EntryType) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    // This state variable now lives inside CreatePage and manages its internal content.
-    var activeEditor by remember { mutableStateOf(EditorType.NONE) }
-
-    when (activeEditor) {
-        EditorType.NONE -> {
-            // Display the original CreatePage menu
-            Column(
-                modifier = modifier
-                    .fillMaxSize()
-                    .background(Color.Transparent)
-                    .padding(16.dp),
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                // Page title
-                Text(
-                    text = "Create something new",
-                    style = titleStyle.copy(color = accent),
-                    modifier = Modifier.padding(bottom = 24.dp)
-                )
-
-                // Buttons that update the activeEditor state
-                CreateOptionButton(
-                    icon = Icons.Rounded.EditNote,
-                    title = "Note",
-                    subtitle = "Capture your thoughts",
-                    onClick = { activeEditor = EditorType.NOTE },
-                    onSurface = textColor,
-                    background = background,
-                    textColor = textColor
-                )
-                Spacer(modifier = Modifier.height(12.dp))
-                CreateOptionButton(
-                    icon = Icons.Rounded.CheckCircle,
-                    title = "Task",
-                    subtitle = "Plan and track actions",
-                    onClick = { activeEditor = EditorType.TASK },
-                    onSurface = textColor,
-                    background = background,
-                    textColor = textColor
-                )
-                Spacer(modifier = Modifier.height(12.dp))
-                CreateOptionButton(
-                    icon = Icons.Rounded.Book,
-                    title = "Verse",
-                    subtitle = "Save an inspiring scripture",
-                    onClick = { activeEditor = EditorType.VERSE },
-                    onSurface = textColor,
-                    background = background,
-                    textColor = textColor
-                )
-                Spacer(modifier = Modifier.height(12.dp))
-                CreateOptionButton(
-                    icon = Icons.Rounded.Favorite,
-                    title = "Prayer",
-                    subtitle = "Write and keep your prayers",
-                    onClick = { activeEditor = EditorType.PRAYER },
-                    onSurface = textColor,
-                    background = background,
-                    textColor = textColor
-                )
-            }
-        }
-        // Display the selected editor, passing an onBack function to return to the menu
-        EditorType.NOTE -> NoteEditor(
-            onBack = { activeEditor = EditorType.NONE },
-            title = "Create Note",
-            modifier = modifier
+    Column(
+        modifier = modifier
+            .fillMaxSize()
+            .background(Color.Transparent)
+            .padding(16.dp),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        // Page title
+        Text(
+            text = "Create something new",
+            style = titleStyle.copy(color = accent),
+            modifier = Modifier.padding(bottom = 24.dp)
         )
 
-        EditorType.TASK -> TaskEditor(
-            onBack = { activeEditor = EditorType.NONE },
-            title = "Create Task",
-            modifier = modifier
+        // Buttons that now call the onEntrySelected lambda.
+        CreateOptionButton(
+            icon = Icons.Rounded.EditNote,
+            title = "Note",
+            subtitle = "Capture your thoughts",
+            onClick = { onEntrySelected(EntryType.Note) },
+            onSurface = textColor,
+            background = background,
+            textColor = textColor
         )
-
-        EditorType.VERSE -> VerseEditor(
-            onBack = { activeEditor = EditorType.NONE },
-            title = "Create Verse",
-            modifier = modifier
+        Spacer(modifier = Modifier.height(12.dp))
+        CreateOptionButton(
+            icon = Icons.Rounded.CheckCircle,
+            title = "Task",
+            subtitle = "Plan and track actions",
+            onClick = { onEntrySelected(EntryType.Task) },
+            onSurface = textColor,
+            background = background,
+            textColor = textColor
         )
-
-        EditorType.PRAYER -> PrayerEditor(
-            onBack = { activeEditor = EditorType.NONE },
-            title = "Create Prayer",
-            modifier = modifier
+        Spacer(modifier = Modifier.height(12.dp))
+        CreateOptionButton(
+            icon = Icons.Rounded.Book,
+            title = "Verse",
+            subtitle = "Save an inspiring scripture",
+            onClick = { onEntrySelected(EntryType.Verse) },
+            onSurface = textColor,
+            background = background,
+            textColor = textColor
+        )
+        Spacer(modifier = Modifier.height(12.dp))
+        CreateOptionButton(
+            icon = Icons.Rounded.Favorite,
+            title = "Prayer",
+            subtitle = "Write and keep your prayers",
+            onClick = { onEntrySelected(EntryType.Prayer) },
+            onSurface = textColor,
+            background = background,
+            textColor = textColor
         )
     }
 }
 
+/**
+ * The private Composable for a single button remains the same.
+ */
 @Composable
 private fun CreateOptionButton(
     icon: ImageVector,
@@ -154,7 +131,7 @@ private fun CreateOptionButton(
     background: Color,
     textColor: Color
 ) {
-    val interactionSource = MutableInteractionSource()
+    val interactionSource = remember { MutableInteractionSource() }
 
     Row(
         modifier = Modifier

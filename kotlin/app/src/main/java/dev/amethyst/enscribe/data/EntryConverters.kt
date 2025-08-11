@@ -1,4 +1,4 @@
-package dev.amethyst.enscribe.entrydata
+package dev.amethyst.enscribe.data
 
 import androidx.room.TypeConverter
 import dev.amethyst.enscribe.ui.theme.EnscribeTheme

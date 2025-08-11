@@ -1,4 +1,4 @@
-package dev.amethyst.enscribe.entrydata
+package dev.amethyst.enscribe.data
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey

@@ -21,7 +21,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import dev.amethyst.enscribe.EnscribeDatabase
+import dev.amethyst.enscribe.data.EnscribeDatabase
 import dev.amethyst.enscribe.ui.components.settings.AboutSection
 import dev.amethyst.enscribe.ui.components.settings.AppearanceSection
 import dev.amethyst.enscribe.ui.components.settings.DatabaseSection
