@@ -373,7 +373,9 @@ fun EntryCard(note: Entry.Note, showCategory: Boolean, showDateTime: Boolean) {
                 }
                 if (showDateTime) {
                     Text(
-                        formatDynamicDate(note.modifiedAt),
+                        // The formatDynamicDate function is now called on the `note` object.
+                        // We also need to import the function to use it.
+                        note.formatDynamicDate(),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.secondary.copy(alpha = 0.75f)
                     )
@@ -453,9 +455,4 @@ fun FilterDialog(
         },
         containerColor = MaterialTheme.colorScheme.secondary
     )
-}
-
-fun formatDynamicDate(timestamp: Long): String {
-    return java.text.SimpleDateFormat("MMM dd, yyyy", java.util.Locale.getDefault())
-        .format(java.util.Date(timestamp))
 }
