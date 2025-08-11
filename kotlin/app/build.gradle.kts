@@ -3,7 +3,12 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.ksp)
+    alias(libs.plugins.androidx.room)
     id("org.jlleitschuh.gradle.ktlint") version "13.0.0"
+}
+
+room {
+    schemaDirectory("$projectDir/schemas")
 }
 
 android {
@@ -63,12 +68,15 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
-    implementation(libs.androidx.room.runtime)
-    implementation(libs.androidx.room.ktx)
-    ksp(libs.androidx.room.compiler)
     implementation(libs.androidx.material.icons.extended)
     implementation(libs.okhttp)
     implementation(libs.androidx.ui)
     implementation(libs.ui.tooling)
     implementation(libs.ui.graphics)
+    implementation(libs.gson)
+
+    // Correct and singular declaration of Room dependencies
+    implementation(libs.androidx.room.runtime)
+    implementation(libs.androidx.room.ktx)
+    ksp(libs.androidx.room.compiler)
 }

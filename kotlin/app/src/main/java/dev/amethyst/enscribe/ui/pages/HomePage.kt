@@ -60,7 +60,7 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
-import dev.amethyst.enscribe.entrydata.EnscribeDatabase
+import dev.amethyst.enscribe.EnscribeDatabase
 import dev.amethyst.enscribe.entrydata.Entry
 import dev.amethyst.enscribe.ui.theme.EnscribeTheme
 import kotlinx.coroutines.launch

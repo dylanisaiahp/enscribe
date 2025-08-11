@@ -1,4 +1,4 @@
-package dev.amethyst.enscribe.ui.sections.settings
+package dev.amethyst.enscribe.ui.components.settings
 
 import android.content.Context
 import android.content.Intent

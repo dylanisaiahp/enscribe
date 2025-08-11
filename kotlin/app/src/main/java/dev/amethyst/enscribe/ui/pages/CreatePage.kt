@@ -36,10 +36,10 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import dev.amethyst.enscribe.ui.sections.create.NoteEditor
-import dev.amethyst.enscribe.ui.sections.create.PrayerEditor
-import dev.amethyst.enscribe.ui.sections.create.TaskEditor
-import dev.amethyst.enscribe.ui.sections.create.VerseEditor
+import dev.amethyst.enscribe.ui.components.create.NoteEditor
+import dev.amethyst.enscribe.ui.components.create.PrayerEditor
+import dev.amethyst.enscribe.ui.components.create.TaskEditor
+import dev.amethyst.enscribe.ui.components.create.VerseEditor
 
 // Define an enum to track which editor is active.
 enum class EditorType {
@@ -120,21 +120,25 @@ fun CreatePage(
         // Display the selected editor, passing an onBack function to return to the menu
         EditorType.NOTE -> NoteEditor(
             onBack = { activeEditor = EditorType.NONE },
+            title = "Create Note",
             modifier = modifier
         )
 
         EditorType.TASK -> TaskEditor(
             onBack = { activeEditor = EditorType.NONE },
+            title = "Create Task",
             modifier = modifier
         )
 
         EditorType.VERSE -> VerseEditor(
             onBack = { activeEditor = EditorType.NONE },
+            title = "Create Verse",
             modifier = modifier
         )
 
         EditorType.PRAYER -> PrayerEditor(
             onBack = { activeEditor = EditorType.NONE },
+            title = "Create Prayer",
             modifier = modifier
         )
     }

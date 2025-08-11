@@ -1,4 +1,4 @@
-package dev.amethyst.enscribe.ui.sections.settings
+package dev.amethyst.enscribe.ui.components.settings
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth

@@ -25,8 +25,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import dev.amethyst.enscribe.entrydata.EnscribeDatabase
-import dev.amethyst.enscribe.entrydata.SettingsEntity
 import dev.amethyst.enscribe.ui.nav.NavBar
 import dev.amethyst.enscribe.ui.pages.CreatePage
 import dev.amethyst.enscribe.ui.pages.HomePage
