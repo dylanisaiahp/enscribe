@@ -20,9 +20,6 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -56,10 +53,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
+import coil.compose.AsyncImage
 import dev.amethyst.enscribe.data.db.EnscribeDatabase
 import dev.amethyst.enscribe.data.models.Entry
 import dev.amethyst.enscribe.ui.theme.EnscribeTheme
@@ -296,16 +295,34 @@ fun HomePage(
                         }
 
                         else -> {
+                            // Masonry grid implementation with two LazyColumns
                             if (isGridView) {
-                                LazyVerticalGrid(
-                                    columns = GridCells.Fixed(2),
-                                    modifier = Modifier.fillMaxSize(),
-                                    contentPadding = PaddingValues(12.dp),
-                                    horizontalArrangement = Arrangement.spacedBy(14.dp),
-                                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                                val firstColumnItems =
+                                    displayedEntries.filterIndexed { index, _ -> index % 2 == 0 }
+                                val secondColumnItems =
+                                    displayedEntries.filterIndexed { index, _ -> index % 2 != 0 }
+
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .padding(horizontal = 12.dp),
+                                    horizontalArrangement = Arrangement.spacedBy(14.dp)
                                 ) {
-                                    items(displayedEntries, key = { it.id }) { note ->
-                                        EntryCard(note, showCategory, showDateTime)
+                                    LazyColumn(
+                                        modifier = Modifier.weight(1f),
+                                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                                    ) {
+                                        items(firstColumnItems, key = { it.id }) { note ->
+                                            EntryCard(note, showCategory, showDateTime)
+                                        }
+                                    }
+                                    LazyColumn(
+                                        modifier = Modifier.weight(1f),
+                                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                                    ) {
+                                        items(secondColumnItems, key = { it.id }) { note ->
+                                            EntryCard(note, showCategory, showDateTime)
+                                        }
                                     }
                                 }
                             } else {
@@ -344,7 +361,18 @@ fun EntryCard(note: Entry.Note, showCategory: Boolean, showDateTime: Boolean) {
                 .padding(16.dp)
                 .fillMaxWidth()
         ) {
-            // TODO: If you have images, replace with AsyncImage, Image, or Coil image provider
+            // Check if note has an image URL and display it
+            if (note.imageUri != null) {
+                AsyncImage(
+                    model = note.imageUri,
+                    contentDescription = "Note image",
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(180.dp), // Adjust height as needed
+                    contentScale = ContentScale.Crop,
+                )
+                Spacer(Modifier.height(8.dp))
+            }
             Text(
                 note.title.ifBlank { "Untitled" },
                 style = MaterialTheme.typography.titleLarge,
@@ -373,8 +401,7 @@ fun EntryCard(note: Entry.Note, showCategory: Boolean, showDateTime: Boolean) {
                 }
                 if (showDateTime) {
                     Text(
-                        // The formatDynamicDate function is now called on the `note` object.
-                        // We also need to import the function to use it.
+                        // Use the formatDynamicDate extension function from EntryData.kt
                         note.formatDynamicDate(),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.secondary.copy(alpha = 0.75f)

@@ -1,13 +1,14 @@
 package dev.amethyst.enscribe.ui.content
 
 import android.net.Uri
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -15,12 +16,11 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AddAPhoto
-import androidx.compose.material.icons.filled.Category
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.ColorLens
 import androidx.compose.material.icons.filled.FitScreen
@@ -44,62 +44,47 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.KeyboardCapitalization
-import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
-import androidx.core.net.toUri
+import coil.compose.AsyncImage
+import dev.amethyst.enscribe.ui.theme.ThemePalettes
 
-/**
- * A composable function to display and edit the content of a Note entry.
- *
- * This component is responsible for the UI layout of a single Note. It includes
- * an image, background color chooser, title, category field, and a
- * multi-line text field for the note's main content.
- *
- * @param modifier The modifier to be applied to the layout.
- */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun NoteContent(modifier: Modifier = Modifier) {
-    // State variables to hold the content and UI state
-    var title by remember { mutableStateOf(TextFieldValue("")) }
-    var category by remember { mutableStateOf(TextFieldValue("")) }
-    var content by remember { mutableStateOf(TextFieldValue("")) }
-    var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
-    var cardBackgroundColor by remember { mutableStateOf<Color?>(null) }
-    var isImageFillCard by remember { mutableStateOf(false) }
-    var showImageDialog by remember { mutableStateOf(false) }
-    var showColorDialog by remember { mutableStateOf(false) }
-
-    // Use LocalFocusManager to clear focus when clicking outside of text fields
+fun NoteContent(
+    title: String,
+    onTitleChange: (String) -> Unit,
+    category: String,
+    onCategoryChange: (String) -> Unit,
+    content: String,
+    onContentChange: (String) -> Unit,
+    selectedImageUri: Uri?,
+    onImageChange: (Uri?) -> Unit,
+    cardBackgroundColor: Color?,
+    onBackgroundColorChange: (Color?) -> Unit,
+    isImageFillCard: Boolean,
+    onImageFillToggle: (Boolean) -> Unit,
+    onImageChangeRequest: () -> Unit,
+    onBackgroundColorRequest: () -> Unit,
+    onCategoryColorRequest: () -> Unit,
+    modifier: Modifier = Modifier
+) {
     val focusManager = LocalFocusManager.current
 
-    // Dialog for image selection
-    if (showImageDialog) {
-        ImagePickerDialog(
-            onDismissRequest = { showImageDialog = false },
-            onImageSelected = { uri ->
-                selectedImageUri = uri
-                showImageDialog = false
-            }
-        )
-    }
+    val textFieldColors = OutlinedTextFieldDefaults.colors(
+        focusedContainerColor = MaterialTheme.colorScheme.secondary,
+        unfocusedContainerColor = MaterialTheme.colorScheme.secondary,
+        focusedTextColor = MaterialTheme.colorScheme.onSurface,
+        unfocusedTextColor = MaterialTheme.colorScheme.onSecondary,
+        focusedPlaceholderColor = MaterialTheme.colorScheme.onSecondary,
+        unfocusedPlaceholderColor = MaterialTheme.colorScheme.onSecondary,
+        cursorColor = MaterialTheme.colorScheme.tertiary,
+        focusedBorderColor = MaterialTheme.colorScheme.tertiary,
+        unfocusedBorderColor = MaterialTheme.colorScheme.secondary
+    )
 
-    // Dialog for color selection
-    if (showColorDialog) {
-        ColorPickerDialog(
-            onDismissRequest = { showColorDialog = false },
-            onColorSelected = { color ->
-                cardBackgroundColor = color
-                showColorDialog = false
-            }
-        )
-    }
-
-    // Main layout Column wrapped in a clickable modifier to clear focus
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -108,18 +93,17 @@ fun NoteContent(modifier: Modifier = Modifier) {
                 interactionSource = remember { MutableInteractionSource() },
                 indication = null
             ) { focusManager.clearFocus() },
-        verticalArrangement = Arrangement.spacedBy(8.dp) // Inner spacing remains at 8.dp
+        verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        // Row for Image and Color options
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp) // Inner spacing remains at 8.dp
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            // Image Button/Preview
+            // Image picker
             Box(
                 modifier = Modifier
                     .weight(1f)
-                    .height(if (selectedImageUri == null) 56.dp else 96.dp) // Dynamic height
+                    .height(if (selectedImageUri == null) 56.dp else 96.dp)
                     .background(
                         color = MaterialTheme.colorScheme.secondary,
                         shape = MaterialTheme.shapes.small
@@ -128,7 +112,7 @@ fun NoteContent(modifier: Modifier = Modifier) {
             ) {
                 if (selectedImageUri == null) {
                     IconButton(
-                        onClick = { showImageDialog = true },
+                        onClick = onImageChangeRequest,
                         modifier = Modifier.fillMaxSize()
                     ) {
                         Icon(
@@ -139,22 +123,15 @@ fun NoteContent(modifier: Modifier = Modifier) {
                         )
                     }
                 } else {
-                    // TODO: Replace with a proper image loading library like Coil
-                    // AsyncImage(
-                    //     model = selectedImageUri,
-                    //     contentDescription = "Selected image",
-                    //     contentScale = ContentScale.Crop,
-                    //     modifier = Modifier.fillMaxSize()
-                    // )
-                    Image(
-                        painter = rememberVectorPainter(image = Icons.Default.AddAPhoto),
+                    AsyncImage(
+                        model = selectedImageUri,
                         contentDescription = "Selected image",
-                        contentScale = ContentScale.Crop,
+                        contentScale = if (isImageFillCard) ContentScale.Crop else ContentScale.Fit,
                         modifier = Modifier.fillMaxSize()
                     )
 
                     IconButton(
-                        onClick = { selectedImageUri = null },
+                        onClick = { onImageChange(null) },
                         modifier = Modifier.align(Alignment.TopEnd)
                     ) {
                         Icon(
@@ -165,7 +142,7 @@ fun NoteContent(modifier: Modifier = Modifier) {
                     }
 
                     IconButton(
-                        onClick = { isImageFillCard = !isImageFillCard },
+                        onClick = { onImageFillToggle(!isImageFillCard) },
                         modifier = Modifier.align(Alignment.TopStart)
                     ) {
                         Icon(
@@ -176,11 +153,12 @@ fun NoteContent(modifier: Modifier = Modifier) {
                     }
                 }
             }
-            // Background Color Button
+
+            // Background color picker
             Box(
                 modifier = Modifier
                     .weight(1f)
-                    .height(if (cardBackgroundColor == null) 56.dp else 96.dp), // Dynamic height
+                    .height(if (cardBackgroundColor == null) 56.dp else 96.dp),
                 contentAlignment = Alignment.Center
             ) {
                 Card(
@@ -190,7 +168,7 @@ fun NoteContent(modifier: Modifier = Modifier) {
                     )
                 ) {
                     IconButton(
-                        onClick = { showColorDialog = true },
+                        onClick = onBackgroundColorRequest,
                         modifier = Modifier.fillMaxSize()
                     ) {
                         if (cardBackgroundColor == null) {
@@ -205,112 +183,61 @@ fun NoteContent(modifier: Modifier = Modifier) {
                 }
                 if (cardBackgroundColor != null) {
                     IconButton(
-                        onClick = { cardBackgroundColor = null },
+                        onClick = { onBackgroundColorChange(null) },
                         modifier = Modifier.align(Alignment.TopEnd)
                     ) {
                         Icon(
                             imageVector = Icons.Default.Close,
                             contentDescription = "Clear background color",
-                            tint = MaterialTheme.colorScheme.onSecondary
+                            tint = MaterialTheme.colorScheme.onSurface
                         )
                     }
                 }
             }
         }
-        // Title Text Field
+
         OutlinedTextField(
             value = title,
-            onValueChange = {
-                if (it.text.length <= 16) {
-                    title = it
-                }
-            },
+            onValueChange = { if (it.length <= 16) onTitleChange(it) },
             placeholder = { Text("Title") },
             modifier = Modifier.fillMaxWidth(),
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedContainerColor = MaterialTheme.colorScheme.secondary,
-                unfocusedContainerColor = MaterialTheme.colorScheme.secondary,
-                focusedTextColor = MaterialTheme.colorScheme.onSurface,
-                unfocusedTextColor = MaterialTheme.colorScheme.onSecondary,
-                focusedPlaceholderColor = MaterialTheme.colorScheme.onSecondary,
-                unfocusedPlaceholderColor = MaterialTheme.colorScheme.onSecondary,
-                disabledContainerColor = MaterialTheme.colorScheme.secondary,
-                cursorColor = MaterialTheme.colorScheme.tertiary,
-                focusedBorderColor = MaterialTheme.colorScheme.tertiary,
-                unfocusedBorderColor = MaterialTheme.colorScheme.secondary
-            ),
+            colors = textFieldColors,
             singleLine = true,
             keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Words),
             shape = MaterialTheme.shapes.small
         )
 
-        // Category Text Field with embedded buttons
+        // Category + category color picker
         OutlinedTextField(
             value = category,
-            onValueChange = {
-                if (it.text.length <= 16) {
-                    category = it
-                }
-            },
+            onValueChange = { if (it.length <= 16) onCategoryChange(it) },
             placeholder = { Text("Category") },
             modifier = Modifier.fillMaxWidth(),
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedContainerColor = MaterialTheme.colorScheme.secondary,
-                unfocusedContainerColor = MaterialTheme.colorScheme.secondary,
-                focusedTextColor = MaterialTheme.colorScheme.onSurface,
-                unfocusedTextColor = MaterialTheme.colorScheme.onSecondary,
-                focusedPlaceholderColor = MaterialTheme.colorScheme.onSecondary,
-                unfocusedPlaceholderColor = MaterialTheme.colorScheme.onSecondary,
-                disabledContainerColor = MaterialTheme.colorScheme.secondary,
-                cursorColor = MaterialTheme.colorScheme.tertiary,
-                focusedBorderColor = MaterialTheme.colorScheme.tertiary,
-                unfocusedBorderColor = MaterialTheme.colorScheme.secondary
-            ),
+            colors = textFieldColors,
             singleLine = true,
             keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Words),
             shape = MaterialTheme.shapes.small,
             trailingIcon = {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    IconButton(onClick = { /* TODO: Implement category selector */ }) {
-                        Icon(
-                            imageVector = Icons.Default.Category,
-                            contentDescription = "Select category",
-                            tint = MaterialTheme.colorScheme.onSecondary,
-                        )
-                    }
-                    Spacer(Modifier.width(8.dp))
-                    IconButton(onClick = { /* TODO: Implement category color picker */ }) {
+                Row {
+                    IconButton(onClick = onCategoryColorRequest) {
                         Icon(
                             imageVector = Icons.Default.ColorLens,
                             contentDescription = "Choose category color",
                             tint = MaterialTheme.colorScheme.onSecondary,
                         )
                     }
-                    Spacer(Modifier.width(8.dp))
                 }
             }
         )
 
-        // Main content text field
         OutlinedTextField(
             value = content,
-            onValueChange = { content = it },
+            onValueChange = { onContentChange(it) },
             placeholder = { Text("Note Content") },
             modifier = Modifier
                 .fillMaxWidth()
                 .weight(1f),
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedContainerColor = MaterialTheme.colorScheme.secondary,
-                unfocusedContainerColor = MaterialTheme.colorScheme.secondary,
-                focusedTextColor = MaterialTheme.colorScheme.onSurface,
-                unfocusedTextColor = MaterialTheme.colorScheme.onSecondary,
-                focusedPlaceholderColor = MaterialTheme.colorScheme.onSecondary,
-                unfocusedPlaceholderColor = MaterialTheme.colorScheme.onSecondary,
-                disabledContainerColor = MaterialTheme.colorScheme.secondary,
-                cursorColor = MaterialTheme.colorScheme.tertiary,
-                focusedBorderColor = MaterialTheme.colorScheme.tertiary,
-                unfocusedBorderColor = MaterialTheme.colorScheme.secondary
-            ),
+            colors = textFieldColors,
             keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
             shape = MaterialTheme.shapes.small
         )
@@ -318,43 +245,22 @@ fun NoteContent(modifier: Modifier = Modifier) {
 }
 
 @Composable
-private fun ImagePickerDialog(
-    onDismissRequest: () -> Unit,
-    onImageSelected: (Uri) -> Unit
-) {
-    AlertDialog(
-        onDismissRequest = onDismissRequest,
-        title = { Text("Image Chooser") },
-        text = { Text("Choose an image from your gallery.") },
-        confirmButton = {
-            TextButton(onClick = {
-                // This is a placeholder. The real implementation would use
-                // Android's Activity Result API to open a gallery.
-                onImageSelected("https://placehold.co/400x200".toUri())
-            }) {
-                Text("Choose from Gallery")
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismissRequest) {
-                Text("Cancel")
-            }
-        }
-    )
-}
-
-@Composable
-private fun ColorPickerDialog(
+fun ColorPickerDialog(
     onDismissRequest: () -> Unit,
     onColorSelected: (Color) -> Unit
 ) {
     var selectedColor by remember { mutableStateOf<Color?>(null) }
     val availableColors = listOf(
-        Color(0xFFF9E899), // Yellow
-        Color(0xFFB5EAD7), // Green
-        Color(0xFFC7CEEA), // Blue
-        Color(0xFFFFADAD), // Red
-        Color(0xFFFFD1A5)  // Orange
+        ThemePalettes.onyx.accent,
+        ThemePalettes.midnight.accent,
+        ThemePalettes.burgundy.accent,
+        ThemePalettes.graphene.accent,
+        ThemePalettes.amethyst.accent,
+        ThemePalettes.lumen.accent,
+        ThemePalettes.beige.accent,
+        ThemePalettes.lavender.accent,
+        ThemePalettes.aqua.accent,
+        ThemePalettes.mint.accent
     )
 
     AlertDialog(
@@ -364,22 +270,36 @@ private fun ColorPickerDialog(
             Column {
                 Text("Select a background color for your note.")
                 Spacer(modifier = Modifier.height(16.dp))
-                Row(
+                FlowRow(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceAround
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     availableColors.forEach { color ->
                         Box(
+                            contentAlignment = Alignment.Center,
                             modifier = Modifier
-                                .size(48.dp)
+                                .size(32.dp)
                                 .background(color, CircleShape)
+                                .then(
+                                    if (selectedColor == color) {
+                                        Modifier.border(
+                                            2.dp,
+                                            MaterialTheme.colorScheme.onSurface,
+                                            CircleShape
+                                        )
+                                    } else {
+                                        Modifier
+                                    }
+                                )
                                 .clickable { selectedColor = color }
                         ) {
                             if (selectedColor == color) {
-                                Box(
-                                    modifier = Modifier
-                                        .fillMaxSize()
-                                        .background(Color.White.copy(alpha = 0.4f), CircleShape)
+                                Icon(
+                                    imageVector = Icons.Default.Check,
+                                    contentDescription = "Selected",
+                                    tint = MaterialTheme.colorScheme.onSurface,
+                                    modifier = Modifier.size(24.dp)
                                 )
                             }
                         }
@@ -395,12 +315,12 @@ private fun ColorPickerDialog(
                 },
                 enabled = selectedColor != null
             ) {
-                Text("OK")
+                Text("OK", color = MaterialTheme.colorScheme.onSurface)
             }
         },
         dismissButton = {
             TextButton(onClick = onDismissRequest) {
-                Text("Cancel")
+                Text("Cancel", color = MaterialTheme.colorScheme.onSurface)
             }
         }
     )

@@ -1,5 +1,8 @@
 package dev.amethyst.enscribe.ui.components
 
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -18,23 +21,77 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import dev.amethyst.enscribe.data.db.EnscribeDatabase
+import dev.amethyst.enscribe.data.models.Entry
 import dev.amethyst.enscribe.data.models.EntryType
+import dev.amethyst.enscribe.ui.content.ColorPickerDialog
 import dev.amethyst.enscribe.ui.content.NoteContent
-import dev.amethyst.enscribe.ui.content.PrayerContent
-import dev.amethyst.enscribe.ui.content.TaskContent
-import dev.amethyst.enscribe.ui.content.VerseContent
+import kotlinx.coroutines.launch
+import java.time.Instant
 
 @Composable
 fun EntryEditor(
-    onBack: () -> Unit,
+    onNavItemSelected: (Int) -> Unit,
     entryType: EntryType,
     isCreating: Boolean,
-    modifier: Modifier = Modifier,
+    modifier: Modifier = Modifier
 ) {
+    val context = LocalContext.current
+    val db = remember { EnscribeDatabase.getInstance(context) }
+    val scope = rememberCoroutineScope()
+
+    // Note state
+    val title = remember { mutableStateOf("") }
+    val category = remember { mutableStateOf("") }
+    val content = remember { mutableStateOf("") }
+    val imageUri = remember { mutableStateOf<Uri?>(null) }
+    val backgroundColor = remember { mutableStateOf<Color?>(null) }
+    val isImageFill = remember { mutableStateOf(false) }
+    val categoryColor = remember { mutableIntStateOf(0) }
+    val reminder = remember { mutableStateOf<Instant?>(null) }
+
+    // Dialog visibility state
+    val showBgColorDialog = remember { mutableStateOf(false) }
+    val showCategoryColorDialog = remember { mutableStateOf(false) }
+
+    // Image picker launcher
+    val imagePickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        uri?.let { imageUri.value = it }
+    }
+
+    // Background color dialog
+    if (showBgColorDialog.value) {
+        ColorPickerDialog(
+            onDismissRequest = { showBgColorDialog.value = false },
+            onColorSelected = { color ->
+                backgroundColor.value = color
+                showBgColorDialog.value = false
+            }
+        )
+    }
+
+    // Category color dialog
+    if (showCategoryColorDialog.value) {
+        ColorPickerDialog(
+            onDismissRequest = { showCategoryColorDialog.value = false },
+            onColorSelected = { color ->
+                categoryColor.intValue = color.value.toInt()
+                showCategoryColorDialog.value = false
+            }
+        )
+    }
+
     Scaffold(
         containerColor = Color.Transparent,
         modifier = modifier.fillMaxSize(),
@@ -42,32 +99,32 @@ fun EntryEditor(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(42.dp)
+                    .height(36.dp)
             ) {
-                // Back button on the left
-                IconButton(
-                    onClick = onBack,
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier
-                        .align(Alignment.CenterStart)
-                        .height(34.dp)
+                        .fillMaxWidth()
                         .padding(start = 4.dp)
                 ) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowBackIos,
-                        contentDescription = "Back",
-                        tint = MaterialTheme.colorScheme.onSurface
+                    IconButton(
+                        onClick = { onNavItemSelected(0) }, // Back to Home
+                        modifier = Modifier.height(32.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBackIos,
+                            contentDescription = "Back",
+                            tint = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
+
+                    Text(
+                        text = "${if (isCreating) "Create" else "Edit"} ${entryType.name}",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onSurface,
                     )
                 }
 
-                // Title derived from the EntryType and the isCreating flag
-                Text(
-                    text = "${if (isCreating) "Create" else "Edit"} ${entryType.name}",
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    modifier = Modifier.align(Alignment.Center)
-                )
-
-                // Row for action icons on the right
                 Row(
                     modifier = Modifier
                         .align(Alignment.CenterEnd)
@@ -76,9 +133,12 @@ fun EntryEditor(
                     horizontalArrangement = Arrangement.spacedBy(4.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    // Reminders icon (new)
+                    // Reminder button
                     IconButton(
-                        onClick = { /* TODO: Implement reminders functionality */ }
+                        onClick = {
+                            // TODO: Date/time picker integration
+                            reminder.value = Instant.now().plusSeconds(3600) // +1hr demo
+                        }
                     ) {
                         Icon(
                             imageVector = Icons.Rounded.Notifications,
@@ -87,9 +147,33 @@ fun EntryEditor(
                         )
                     }
 
-                    // Save icon
+                    // Save button
                     IconButton(
-                        onClick = { /* TODO: Functionality to save to database, show as a EntryCard in HomePage */ }
+                        onClick = {
+                            scope.launch {
+                                val now = System.currentTimeMillis()
+                                when (entryType) {
+                                    EntryType.Note -> {
+                                        val note = Entry.Note(
+                                            title = title.value,
+                                            category = category.value,
+                                            categoryColor = categoryColor.intValue,
+                                            backgroundColor = backgroundColor.value?.value?.toInt(),
+                                            imageUri = imageUri.value?.toString(),
+                                            imageFillCard = isImageFill.value,
+                                            hasReminder = null, // Hook reminder later
+                                            createdAt = now,
+                                            modifiedAt = now,
+                                            content = content.value
+                                        )
+                                        db.noteDao().insert(note)
+                                    }
+
+                                    else -> {}
+                                }
+                                onNavItemSelected(0) // Go Home after save
+                            }
+                        }
                     ) {
                         Icon(
                             imageVector = Icons.Rounded.Save,
@@ -106,12 +190,24 @@ fun EntryEditor(
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
-            // Display the appropriate editor UI based on the entryType
-            when (entryType) {
-                EntryType.Note -> NoteContent()
-                EntryType.Task -> TaskContent()
-                EntryType.Verse -> VerseContent()
-                EntryType.Prayer -> PrayerContent()
+            if (entryType == EntryType.Note) {
+                NoteContent(
+                    title = title.value,
+                    onTitleChange = { title.value = it },
+                    category = category.value,
+                    onCategoryChange = { category.value = it },
+                    content = content.value,
+                    onContentChange = { content.value = it },
+                    selectedImageUri = imageUri.value,
+                    onImageChange = { imageUri.value = it },
+                    cardBackgroundColor = backgroundColor.value,
+                    onBackgroundColorChange = { backgroundColor.value = it },
+                    isImageFillCard = isImageFill.value,
+                    onImageFillToggle = { isImageFill.value = it },
+                    onImageChangeRequest = { imagePickerLauncher.launch("image/*") },
+                    onBackgroundColorRequest = { showBgColorDialog.value = true },
+                    onCategoryColorRequest = { showCategoryColorDialog.value = true }
+                )
             }
         }
     }

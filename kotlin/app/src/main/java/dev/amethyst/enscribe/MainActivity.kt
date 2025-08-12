@@ -195,9 +195,13 @@ class MainActivity : ComponentActivity() {
                             )
 
                             is Screen.Editor -> EntryEditor(
-                                onBack = {
+                                onNavItemSelected = { index ->
                                     previousScreen = currentScreen
-                                    currentScreen = Screen.CreateMenu
+                                    currentScreen = when (index) {
+                                        0 -> Screen.Home
+                                        1 -> Screen.CreateMenu
+                                        else -> Screen.Home
+                                    }
                                 },
                                 entryType = targetScreen.entryType,
                                 isCreating = targetScreen.isCreating,

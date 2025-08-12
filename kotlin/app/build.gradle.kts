@@ -74,9 +74,8 @@ dependencies {
     implementation(libs.ui.tooling)
     implementation(libs.ui.graphics)
     implementation(libs.gson)
-
-    // Correct and singular declaration of Room dependencies
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
     ksp(libs.androidx.room.compiler)
+    implementation(libs.coil.compose)
 }
