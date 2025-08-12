@@ -1,4 +1,4 @@
-package dev.amethyst.enscribe.data
+package dev.amethyst.enscribe.data.db
 
 import android.content.Context
 import androidx.room.Dao
@@ -13,10 +13,10 @@ import androidx.room.RoomDatabase
 import androidx.room.Transaction
 import androidx.room.TypeConverters
 import com.google.gson.Gson
-import dev.amethyst.enscribe.data.Entry.Note
-import dev.amethyst.enscribe.data.Entry.Prayer
-import dev.amethyst.enscribe.data.Entry.Task
-import dev.amethyst.enscribe.data.Entry.Verse
+import dev.amethyst.enscribe.data.models.Entry.Note
+import dev.amethyst.enscribe.data.models.Entry.Prayer
+import dev.amethyst.enscribe.data.models.Entry.Task
+import dev.amethyst.enscribe.data.models.Entry.Verse
 import kotlinx.coroutines.flow.Flow
 
 /**

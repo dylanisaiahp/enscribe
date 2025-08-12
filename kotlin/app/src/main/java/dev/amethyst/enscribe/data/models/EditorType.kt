@@ -1,4 +1,4 @@
-package dev.amethyst.enscribe.data
+package dev.amethyst.enscribe.data.models
 
 /**
  * Defines the different types of entries that can be created in the app.

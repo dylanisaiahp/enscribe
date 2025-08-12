@@ -35,7 +35,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 
 // Import our shared EntryType enum.
-import dev.amethyst.enscribe.data.EntryType
+import dev.amethyst.enscribe.data.models.EntryType
 
 /**
  * The CreatePage, a simple menu for selecting an entry type.

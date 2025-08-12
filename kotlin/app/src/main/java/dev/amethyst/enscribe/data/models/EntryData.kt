@@ -1,7 +1,8 @@
-package dev.amethyst.enscribe.data
+package dev.amethyst.enscribe.data.models
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import dev.amethyst.enscribe.data.db.Reminder
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter

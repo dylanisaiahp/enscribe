@@ -22,7 +22,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import dev.amethyst.enscribe.data.EntryType
+import dev.amethyst.enscribe.data.models.EntryType
+import dev.amethyst.enscribe.ui.content.NoteContent
+import dev.amethyst.enscribe.ui.content.PrayerContent
+import dev.amethyst.enscribe.ui.content.TaskContent
+import dev.amethyst.enscribe.ui.content.VerseContent
 
 @Composable
 fun EntryEditor(
@@ -104,32 +108,11 @@ fun EntryEditor(
         ) {
             // Display the appropriate editor UI based on the entryType
             when (entryType) {
-                EntryType.Note -> NoteEditorContent()
-                EntryType.Task -> TaskEditorContent()
-                EntryType.Verse -> VerseEditorContent()
-                EntryType.Prayer -> PrayerEditorContent()
+                EntryType.Note -> NoteContent()
+                EntryType.Task -> TaskContent()
+                EntryType.Verse -> VerseContent()
+                EntryType.Prayer -> PrayerContent()
             }
         }
     }
-}
-
-// TODO: Replace these placeholder composables with your actual editor UI.
-@Composable
-fun NoteEditorContent() {
-    Text(text = "Note Editor UI goes here.")
-}
-
-@Composable
-fun TaskEditorContent() {
-    Text(text = "Task Editor UI goes here.")
-}
-
-@Composable
-fun VerseEditorContent() {
-    Text(text = "Verse Editor UI goes here.")
-}
-
-@Composable
-fun PrayerEditorContent() {
-    Text(text = "Prayer Editor UI goes here.")
 }
